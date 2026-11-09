@@ -173,12 +173,8 @@
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="ascChk" style="width:16px;height:16px;"> по возрастанию
       </label>
-      <select id="filterSelect">
-        <option value="all">Все категории</option>
-        <option value="profit">Только прибыльные</option>
-        <option value="loss">Только убыточные</option>
-      </select>
       <button class="btn" id="btnSortApply">Применить сортировку</button>
+      <button class="btn" id="btnResetOrder">Исходный порядок</button>
     </div>
     <div class="summary" id="summary"></div>
   </section>
@@ -203,49 +199,50 @@
 (function(){
   "use strict";
 
-  const MAX_CATS = 20;
-  const ROW_KEYS = ["orders","revenue","cost","ads","gross","margin","avgcheck","cpo","drr","profit","romi","delete"];
-  const INPUT_ROWS = ["orders","revenue","cost","ads"];
-  const CALC_KEYS = ["gross","margin","avgcheck","cpo","drr","profit","romi"];
+  var MAX_CATS = 20;
+  var INPUT_ROWS = ["orders","revenue","cost","ads"];
+  var ROW_KEYS = ["orders","revenue","cost","ads","gross","margin","avgcheck","cpo","drr","profit","romi","delete"];
 
-  const table = document.getElementById("calcTable");
-  const headRow = document.getElementById("headRow");
-  const btnCalc = document.getElementById("btnCalc");
-  const btnCsv = document.getElementById("btnCsv");
-  const btnSortApply = document.getElementById("btnSortApply");
-  const dateFrom = document.getElementById("dateFrom");
-  const dateTo = document.getElementById("dateTo");
-  const dateError = document.getElementById("dateError");
-  const resultPeriod = document.getElementById("resultPeriod");
-  const sortSelect = document.getElementById("sortSelect");
-  const ascChk = document.getElementById("ascChk");
-  const filterSelect = document.getElementById("filterSelect");
-  const summaryEl = document.getElementById("summary");
+  var table = document.getElementById("calcTable");
+  var headRow = document.getElementById("headRow");
+  var btnCalc = document.getElementById("btnCalc");
+  var btnCsv = document.getElementById("btnCsv");
+  var btnSortApply = document.getElementById("btnSortApply");
+  var btnResetOrder = document.getElementById("btnResetOrder");
+  var dateFrom = document.getElementById("dateFrom");
+  var dateTo = document.getElementById("dateTo");
+  var dateError = document.getElementById("dateError");
+  var resultPeriod = document.getElementById("resultPeriod");
+  var sortSelect = document.getElementById("sortSelect");
+  var ascChk = document.getElementById("ascChk");
+  var summaryEl = document.getElementById("summary");
 
-  let categories = [];
-  let catIdSeq = 0;
-  let orderIds = [];
-  let calcMap = {};
+  var categories = [];
+  var catIdSeq = 0;
+  var orderIds = [];      // текущий порядок отображения
+  var inputOrder = [];    // исходный порядок ввода
+  var calculated = false; // нажата ли «Рассчитать»
 
   function addCategory(name){
     if (categories.length >= MAX_CATS) return null;
-    const c = {id: ++catIdSeq, name: name || "", orders:"", revenue:"", cost:"", ads:""};
+    var c = {id: ++catIdSeq, name: name || "", orders:"", revenue:"", cost:"", ads:""};
     categories.push(c);
     orderIds.push(c.id);
+    inputOrder.push(c.id);
     return c;
   }
 
   function num(v){
     if (v === "" || v === null || v === undefined) return NaN;
-    const n = Number(String(v).replace(",", ".").trim());
+    var n = Number(String(v).replace(",", ".").trim());
     return isFinite(n) ? n : NaN;
   }
   function money(v){ return v.toFixed(2).replace(".", ","); }
   function pct(v){ return v.toFixed(1).replace(".", ","); }
 
   function calcCategory(c){
-    const orders = num(c.orders), revenue = num(c.revenue), cost = num(c.cost), ads = num(c.ads);
-    const r = {gross:null, margin:null, avgcheck:null, cpo:null, drr:null, profit:null, romi:null};
+    var orders = num(c.orders), revenue = num(c.revenue), cost = num(c.cost), ads = num(c.ads);
+    var r = {gross:null, margin:null, avgcheck:null, cpo:null, drr:null, profit:null, romi:null};
     if (!isNaN(revenue) && !isNaN(cost)) r.gross = revenue - cost;
     if (r.gross !== null && !isNaN(revenue) && revenue !== 0) r.margin = r.gross / revenue * 100;
     if (!isNaN(orders) && orders !== 0 && !isNaN(revenue)) r.avgcheck = revenue / orders;
@@ -256,20 +253,15 @@
     return r;
   }
 
-  function recalcAll(){
-    calcMap = {};
-    categories.forEach(c => { calcMap[c.id] = calcCategory(c); });
-  }
-
   function formatVal(rowKey, val){
     if (val === null || val === undefined || isNaN(val)) return "—";
-    if (["gross","avgcheck","cpo","profit"].includes(rowKey)) return money(val) + " ₽";
-    if (["margin","drr","romi"].includes(rowKey)) return pct(val) + "%";
+    if (["gross","avgcheck","cpo","profit"].indexOf(rowKey) !== -1) return money(val) + " ₽";
+    if (["margin","drr","romi"].indexOf(rowKey) !== -1) return pct(val) + "%";
     return String(val);
   }
   function signClass(rowKey, val){
     if (val === null || val === undefined || isNaN(val)) return "";
-    if (["profit","romi","margin"].includes(rowKey)) {
+    if (["profit","romi","margin"].indexOf(rowKey) !== -1) {
       if (val > 0) return "pos";
       if (val < 0) return "neg";
     }
@@ -278,19 +270,46 @@
 
   function displayName(c){
     if (c.name && c.name.trim()) return c.name.trim();
-    const idx = categories.findIndex(x => x.id === c.id);
+    var idx = categories.findIndex(function(x){ return x.id === c.id; });
     return "Категория " + (idx + 1);
   }
 
-  function render(){
-    let visible = orderIds.slice();
-    if (filterSelect.value === "profit") visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit>0; });
-    if (filterSelect.value === "loss")   visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit<0; });
+  function renderSummary(){
+    var rows = categories.map(function(c){ return {c: c, r: calcCategory(c)}; });
+    if (!rows.length) {
+      summaryEl.innerHTML = '<div class="item"><span class="label">Нет категорий.</span></div>';
+      return;
+    }
+    function best(key){
+      var best = null;
+      rows.forEach(function(x){
+        var v = x.r[key];
+        if (v === null || isNaN(v)) return;
+        if (!best || v > best.v) best = {v: v, c: x.c};
+      });
+      return best ? displayName(best.c) : "—";
+    }
+    var losing = rows.filter(function(x){
+      return x.r.profit !== null && x.r.profit < 0;
+    }).map(function(x){ return displayName(x.c); });
 
-    headRow.querySelectorAll("th.cat-col, th.plus-col").forEach(el => el.remove());
-    const plusTh = document.createElement("th");
+    var html = "";
+    html += '<div class="item"><span class="label">Лучшая по прибыли после рекламы:</span>' + esc(best("profit")) + '</div>';
+    html += '<div class="item"><span class="label">Лучшая по ROMI:</span>' + esc(best("romi")) + '</div>';
+    if (losing.length) html += '<div class="item neg"><span class="label">Убыточные категории:</span>' + losing.map(esc).join(", ") + '</div>';
+    else html += '<div class="item"><span class="label">Убыточные категории:</span>нет</div>';
+    summaryEl.innerHTML = html;
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]; }); }
+
+  function render(){
+    var visible = orderIds.slice();
+
+    headRow.querySelectorAll("th.cat-col, th.plus-col").forEach(function(el){ el.remove(); });
+    var plusTh = document.createElement("th");
     plusTh.className = "plus-col";
-    const addBtn = document.createElement("button");
+    var addBtn = document.createElement("button");
     addBtn.className = "btn";
     addBtn.id = "btnAdd";
     addBtn.title = "Добавить категорию";
@@ -300,61 +319,53 @@
     plusTh.appendChild(addBtn);
     headRow.appendChild(plusTh);
 
-    const frag = document.createDocumentFragment();
-    visible.forEach(id => {
-      const c = categories.find(x => x.id === id);
+    var frag = document.createDocumentFragment();
+    visible.forEach(function(id){
+      var c = categories.find(function(x){ return x.id === id; });
       if (!c) return;
-      const th = document.createElement("th");
+      var th = document.createElement("th");
       th.className = "cat-col";
-      const inp = document.createElement("input");
+      var inp = document.createElement("input");
       inp.type = "text";
       inp.value = c.name;
       inp.placeholder = "Название категории";
       inp.dataset.cat = id;
-      inp.addEventListener("input", e => {
-        c.name = e.target.value;
-        renderSummary(visible);
-      });
+      inp.addEventListener("input", function(e){ c.name = e.target.value; renderSummary(); });
+      inp.addEventListener("change", function(e){ c.name = e.target.value; renderSummary(); });
       th.appendChild(inp);
       frag.appendChild(th);
     });
     headRow.insertBefore(frag, plusTh);
 
-    ROW_KEYS.forEach(rowKey => {
-      const tr = table.querySelector('tr[data-row="' + rowKey + '"]');
-      tr.querySelectorAll("td:not(.rowhead)").forEach(td => td.remove());
-      const fragRow = document.createDocumentFragment();
-      visible.forEach(id => {
-        const c = categories.find(x => x.id === id);
+    ROW_KEYS.forEach(function(rowKey){
+      var tr = table.querySelector('tr[data-row="' + rowKey + '"]');
+      tr.querySelectorAll("td:not(.rowhead)").forEach(function(td){ td.remove(); });
+      var fragRow = document.createDocumentFragment();
+      visible.forEach(function(id){
+        var c = categories.find(function(x){ return x.id === id; });
         if (!c) return;
-        const td = document.createElement("td");
-        if (INPUT_ROWS.includes(rowKey)) {
+        var td = document.createElement("td");
+        if (INPUT_ROWS.indexOf(rowKey) !== -1) {
           td.className = "cell-input";
-          const inp = document.createElement("input");
+          var inp = document.createElement("input");
           inp.type = "number";
           inp.step = rowKey === "orders" ? "1" : "0.01";
           inp.min = "0";
           inp.value = c[rowKey] === "" ? "" : c[rowKey];
-          inp.addEventListener("input", e => {
-            c[rowKey] = e.target.value;
-            recalcAll();
-            updateCalcCells(visible);
-            renderSummary(visible);
-          });
+          inp.addEventListener("input", function(e){ c[rowKey] = e.target.value; updateAll(); });
+          inp.addEventListener("change", function(e){ c[rowKey] = e.target.value; updateAll(); });
           td.appendChild(inp);
         } else if (rowKey === "delete") {
           td.className = "cell-input";
-          const b = document.createElement("button");
+          var b = document.createElement("button");
           b.className = "del-btn"; b.textContent = "✕"; b.title = "Удалить категорию";
-          b.addEventListener("click", () => removeCategory(id));
+          b.addEventListener("click", function(){ removeCategory(id); });
           td.appendChild(b);
         } else {
-          const r = calcMap[id];
-          const val = r ? r[rowKey] : null;
-          td.dataset.calc = rowKey;
-          td.dataset.cat = id;
+          var r = calcCategory(c);
+          var val = r[rowKey];
           td.className = "calc " + signClass(rowKey, val);
-          td.textContent = formatVal(rowKey, val);
+          td.textContent = calculated ? formatVal(rowKey, val) : "—";
         }
         fragRow.appendChild(td);
       });
@@ -370,72 +381,51 @@
       resultPeriod.classList.remove("show");
     }
 
-    renderSummary(visible);
+    renderSummary();
   }
 
-  function updateCalcCells(visible){
-    visible.forEach(id => {
-      const r = calcMap[id];
-      if (!r) return;
-      CALC_KEYS.forEach(key => {
-        const td = table.querySelector('td[data-cat="'+id+'"][data-calc="'+key+'"]');
+  // при вводе: если расчёт уже был, обновляем значения на лету (без сортировки)
+  function updateAll(){
+    calculated = true;
+    // возврат к исходному порядку ввода при изменении поля
+    orderIds = inputOrder.slice();
+    // обновляем только расчётные ячейки, не перестраивая инпуты
+    var r, td, val;
+    categories.forEach(function(c){
+      r = calcCategory(c);
+      ["gross","margin","avgcheck","cpo","drr","profit","romi"].forEach(function(key){
+        td = table.querySelector('td[data-cat="'+c.id+'"][data-calc="'+key+'"]');
         if (!td) return;
-        const val = r[key];
+        val = r[key];
         td.className = "calc " + signClass(key, val);
         td.textContent = formatVal(key, val);
       });
     });
+    // на случай, если порядок изменился (был сортированный) — перерисовываем
+    render();
   }
 
   function fmtDate(v){
     if (!v) return "—";
-    const p = v.split("-");
+    var p = v.split("-");
     return p[2] + "." + p[1] + "." + p[0];
   }
-
-  function renderSummary(visible){
-    if (!visible.length) {
-      summaryEl.innerHTML = '<div class="item"><span class="label">Нет категорий для сравнения.</span></div>';
-      return;
-    }
-    const rows = visible.map(id => ({id, c: categories.find(x=>x.id===id), r: calcMap[id]}))
-      .filter(x => x.c && x.r);
-    if (!rows.length) {
-      summaryEl.innerHTML = '<div class="item"><span class="label">Нет данных.</span></div>';
-      return;
-    }
-    function best(key){
-      let best=null;
-      rows.forEach(x=>{ const v=x.r[key]; if(v===null||isNaN(v))return; if(!best||v>best.v)best={v,c:x.c}; });
-      return best ? displayName(best.c) : "—";
-    }
-    const losing = rows.filter(x => x.r.profit!==null && x.r.profit<0).map(x => displayName(x.c));
-    let html = "";
-    html += '<div class="item"><span class="label">Лучшая по прибыли после рекламы:</span>' + esc(best("profit")) + '</div>';
-    html += '<div class="item"><span class="label">Лучшая по ROMI:</span>' + esc(best("romi")) + '</div>';
-    if (losing.length) html += '<div class="item neg"><span class="label">Убыточные категории:</span>' + losing.map(esc).join(", ") + '</div>';
-    else html += '<div class="item"><span class="label">Убыточные категории:</span>нет</div>';
-    summaryEl.innerHTML = html;
-  }
-
-  function esc(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
   function onAdd(){
     if (categories.length >= MAX_CATS) return;
     addCategory("");
-    recalcAll();
     render();
   }
 
   function removeCategory(id){
-    categories = categories.filter(c => c.id !== id);
-    orderIds = orderIds.filter(x => x !== id);
-    delete calcMap[id];
+    categories = categories.filter(function(c){ return c.id !== id; });
+    orderIds = orderIds.filter(function(x){ return x !== id; });
+    inputOrder = inputOrder.filter(function(x){ return x !== id; });
     render();
   }
 
   function validateDates(){
-    const a = dateFrom.value, b = dateTo.value;
+    var a = dateFrom.value, b = dateTo.value;
     dateFrom.classList.remove("invalid"); dateTo.classList.remove("invalid");
     dateError.classList.remove("show");
     if (!a || !b) {
@@ -452,37 +442,44 @@
     return true;
   }
 
-  function applySort(){
+  // «Рассчитать» — только расчёт, без сортировки (вариант А)
+  function doCalculate(){
     if (!validateDates()) return;
-    const key = sortSelect.value;
-    const asc = ascChk.checked;
-    const arr = categories.slice();
-    arr.sort((x, y) => {
-      const rx = calcMap[x.id], ry = calcMap[y.id];
-      const vx = rx ? rx[key] : null, vy = ry ? ry[key] : null;
-      const nx = (vx === null || isNaN(vx)), ny = (vy === null || isNaN(vy));
+    calculated = true;
+    orderIds = inputOrder.slice(); // исходный порядок ввода
+    render();
+  }
+
+  // сортировка — только по кнопке внизу
+  function applySort(){
+    var key = sortSelect.value;
+    var asc = ascChk.checked;
+    var arr = categories.slice();
+    arr.sort(function(x, y){
+      var rx = calcCategory(x), ry = calcCategory(y);
+      var vx = rx[key], vy = ry[key];
+      var nx = (vx === null || isNaN(vx)), ny = (vy === null || isNaN(vy));
       if (nx && ny) return 0;
       if (nx) return 1;
       if (ny) return -1;
       return asc ? vx - vy : vy - vx;
     });
-    orderIds = arr.map(c => c.id);
+    orderIds = arr.map(function(c){ return c.id; });
     render();
   }
 
-  function doCalculate(){
-    if (!validateDates()) return;
-    recalcAll();
-    applySort();
+  function resetOrder(){
+    orderIds = inputOrder.slice();
+    render();
   }
 
   function toCsv(){
-    const sep = ";";
-    const lines = [];
+    var sep = ";";
+    var lines = [];
     lines.push("Период анализа:;" + fmtDate(dateFrom.value) + ";" + fmtDate(dateTo.value));
     lines.push("Показатели — текущий срез за период. Не окончательные данные для масштабирования.");
     lines.push("");
-    const metrics = [
+    var metrics = [
       ["orders","Количество оплаченных заказов"],
       ["revenue","Выручка, ₽"],
       ["cost","Закупочная стоимость, ₽"],
@@ -495,34 +492,35 @@
       ["profit","Прибыль после рекламы"],
       ["romi","ROMI"]
     ];
-    lines.push(["Категория"].concat(metrics.map(m => m[1])).map(csvCell).join(sep));
-    categories.forEach(c => {
-      const r = calcMap[c.id] || calcCategory(c);
-      const row = [displayName(c)];
-      metrics.forEach(([key]) => {
-        let v;
-        if (INPUT_ROWS.includes(key)) v = c[key];
+    lines.push(["Категория"].concat(metrics.map(function(m){ return m[1]; })).map(csvCell).join(sep));
+    categories.forEach(function(c){
+      var r = calcCategory(c);
+      var row = [displayName(c)];
+      metrics.forEach(function(m){
+        var key = m[0];
+        var v;
+        if (INPUT_ROWS.indexOf(key) !== -1) v = c[key];
         else {
           v = r[key];
           if (v !== null && v !== undefined && !isNaN(v)) {
-            v = ["margin","drr","romi"].includes(key) ? pct(v) + "%" : money(v);
+            v = ["margin","drr","romi"].indexOf(key) !== -1 ? pct(v) + "%" : money(v);
           } else v = "—";
         }
         row.push(v === "" ? "" : v);
       });
       lines.push(row.map(csvCell).join(sep));
     });
-    const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    var blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
     a.href = url;
     a.download = "kategorii_" + (dateFrom.value || "start") + "_" + (dateTo.value || "end") + ".csv";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
   function csvCell(v){
-    const s = String(v === null || v === undefined ? "" : v);
+    var s = String(v === null || v === undefined ? "" : v);
     if (/[";\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }
@@ -530,12 +528,11 @@
   btnCalc.addEventListener("click", doCalculate);
   btnCsv.addEventListener("click", toCsv);
   btnSortApply.addEventListener("click", applySort);
-  filterSelect.addEventListener("change", render);
-  dateFrom.addEventListener("change", () => { validateDates(); render(); });
-  dateTo.addEventListener("change", () => { validateDates(); render(); });
+  btnResetOrder.addEventListener("click", resetOrder);
+  dateFrom.addEventListener("change", function(){ validateDates(); render(); });
+  dateTo.addEventListener("change", function(){ validateDates(); render(); });
 
   addCategory("");
-  recalcAll();
   render();
 })();
 </script>
