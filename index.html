@@ -4,97 +4,224 @@
 <meta charset="UTF-8">
 <title>Калькулятор эффективности товарных категорий</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f4f7;
-  margin: 0;
-  padding: 30px;
-}
-.card {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  max-width: 700px;
-  margin: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-h1 {
-  font-size: 22px;
-  margin-bottom: 20px;
-}
-label {
-  display: block;
-  margin-top: 15px;
-  font-weight: bold;
-}
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-}
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 20px;
-  background: #2c7be5;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-}
-button:hover {
-  background: #1a5fb4;
-}
-.result {
-  margin-top: 20px;
-  padding: 15px;
-  background: #eef6ff;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
-}
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px; }
+.card { background:#fff; padding:20px; border-radius:10px; max-width:1200px; margin:auto; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+h1 { font-size:22px; }
+p { color:#555; }
+table { width:100%; border-collapse:collapse; margin-top:15px; }
+th, td { border:1px solid #ddd; padding:8px; text-align:center; font-size:14px; }
+th { background:#eef2f7; }
+input { width:100%; padding:5px; box-sizing:border-box; }
+button { padding:10px 15px; margin:10px 5px 0 0; background:#2c7be5; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+button.secondary { background:#6c757d; }
+.total { background:#eef6ff; font-weight:bold; }
+.note { margin-top:20px; font-size:14px; color:#555; }
 </style>
 </head>
 <body>
 <div class="card">
 <h1>Калькулятор эффективности товарных категорий</h1>
+<p>Введите данные по категориям за выбранный период. Калькулятор рассчитает валовую прибыль, маржинальность, стоимость заказа, ДРР, прибыль после рекламы и ROMI — и отсортирует категории по прибыли после рекламных расходов.</p>
 
-<label>Выручка</label>
-<input type="number" id="revenue" placeholder="Введите выручку">
+<label>Период анализа: начало</label>
+<input type="date" id="start">
 
-<label>Себестоимость</label>
-<input type="number" id="cost" placeholder="Введите себестоимость">
+<label>Период анализа: окончание</label>
+<input type="date" id="end">
 
-<label>Маржа (%)</label>
-<input type="number" id="margin" placeholder="Введите маржу">
-
-<label>Оборачиваемость</label>
-<input type="number" id="turnover" placeholder="Введите оборачиваемость">
-
+<button onclick="addRow()">+ Добавить категорию</button>
 <button onclick="calculate()">Рассчитать</button>
+<button class="secondary" onclick="downloadCSV()">Скачать CSV</button>
 
-<div class="result" id="result">
-Результат появится здесь
+<table id="table">
+<tr>
+<th>Категория</th>
+<th>Завершённые продажи</th>
+<th>Выручка, ₽</th>
+<th>Закупочная стоимость, ₽</th>
+<th>Рекламные расходы, ₽</th>
+<th>Валовая прибыль</th>
+<th>Маржинальность</th>
+<th>Средний чек</th>
+<th>CPO</th>
+<th>ДРР</th>
+<th>Прибыль после рекламы</th>
+<th>ROMI</th>
+<th></th>
+</tr>
+</table>
+
+<button onclick="addTotalRow()">Добавить итог</button>
+
+<p class="note">
+Можно добавить до 20 категорий. Названия можно менять: например, «Тормозные колодки», «Фильтры», «Амортизаторы», «Масло», «Оптика».
+</p>
+
+<div class="note">
+<strong>Как считаются показатели</strong><br>
+Валовая прибыль = выручка − закупочная стоимость проданных товаров.<br>
+Маржинальность = валовая прибыль / выручка × 100%.<br>
+Средний чек = выручка / завершённые продажи.<br>
+CPO = рекламные расходы / завершённые продажи.<br>
+ДРР = рекламные расходы / выручка × 100%.<br>
+Прибыль после рекламы = валовая прибыль − рекламные расходы.<br>
+ROMI = прибыль после рекламы / рекламные расходы × 100%.
 </div>
 </div>
 
 <script>
-function calculate() {
-  let revenue = parseFloat(document.getElementById('revenue').value) || 0;
-  let cost = parseFloat(document.getElementById('cost').value) || 0;
-  let margin = parseFloat(document.getElementById('margin').value) || 0;
-  let turnover = parseFloat(document.getElementById('turnover').value) || 0;
+let rows = 0;
 
-  let profit = revenue - cost;
-  let efficiency = (margin * turnover) / 100;
-
-  document.getElementById('result').innerText =
-    'Прибыль: ' + profit + ' | Эффективность: ' + efficiency.toFixed(2);
+function addRow() {
+  if (rows >= 20) return;
+  rows++;
+  let table = document.getElementById('table');
+  let row = table.insertRow(-1);
+  row.innerHTML = `
+  <td><input type="text" placeholder="Название категории"></td>
+  <td><input type="number" class="sales"></td>
+  <td><input type="number" class="revenue"></td>
+  <td><input type="number" class="cost"></td>
+  <td><input type="number" class="ads"></td>
+  <td class="gross">—</td>
+  <td class="margin">—</td>
+  <td class="check">—</td>
+  <td class="cpo">—</td>
+  <td class="dar">—</td>
+  <td class="profit">—</td>
+  <td class="romi">—</td>
+  <td><button onclick="this.closest('tr').remove()">Удалить</button></td>
+  `;
 }
+
+function addTotalRow() {
+  let table = document.getElementById('table');
+  let row = table.insertRow(-1);
+  row.className = 'total';
+  row.innerHTML = `
+  <td>Итого</td>
+  <td class="t-sales">—</td>
+  <td class="t-revenue">—</td>
+  <td class="t-cost">—</td>
+  <td class="t-ads">—</td>
+  <td class="t-gross">—</td>
+  <td class="t-margin">—</td>
+  <td class="t-check">—</td>
+  <td class="t-cpo">—</td>
+  <td class="t-dar">—</td>
+  <td class="t-profit">—</td>
+  <td class="t-romi">—</td>
+  <td></td>
+  `;
+}
+
+function calculate() {
+  let table = document.getElementById('table');
+  let data = [];
+
+  let totalSales = 0;
+  let totalRevenue = 0;
+  let totalCost = 0;
+  let totalAds = 0;
+  let totalGross = 0;
+  let totalProfit = 0;
+
+  for (let i = 1; i < table.rows.length; i++) {
+    let row = table.rows[i];
+    if (row.className === 'total') continue;
+
+    let name = row.cells[0].querySelector('input').value || 'Категория';
+    let sales = parseFloat(row.cells[1].querySelector('input').value) || 0;
+    let revenue = parseFloat(row.cells[2].querySelector('input').value) || 0;
+    let cost = parseFloat(row.cells[3].querySelector('input').value) || 0;
+    let ads = parseFloat(row.cells[4].querySelector('input').value) || 0;
+
+    let gross = revenue - cost;
+    let margin = revenue ? gross / revenue * 100 : 0;
+    let check = sales ? revenue / sales : 0;
+    let cpo = sales ? ads / sales : 0;
+    let dar = revenue ? ads / revenue * 100 : 0;
+    let profit = gross - ads;
+    let romi = ads ? profit / ads * 100 : 0;
+
+    row.cells[5].innerText = gross.toFixed(2);
+    row.cells[6].innerText = margin.toFixed(2) + '%';
+    row.cells[7].innerText = check.toFixed(2);
+    row.cells[8].innerText = cpo.toFixed(2);
+    row.cells[9].innerText = dar.toFixed(2) + '%';
+    row.cells[10].innerText = profit.toFixed(2);
+    row.cells[11].innerText = romi.toFixed(2) + '%';
+
+    totalSales += sales;
+    totalRevenue += revenue;
+    totalCost += cost;
+    totalAds += ads;
+    totalGross += gross;
+    totalProfit += profit;
+
+    data.push({name, profit, sales, revenue, cost, ads, gross, margin, check, cpo, dar, romi});
+  }
+
+  let totalMargin = totalRevenue ? totalGross / totalRevenue * 100 : 0;
+  let totalCheck = totalSales ? totalRevenue / totalSales : 0;
+  let totalCPO = totalSales ? totalAds / totalSales : 0;
+  let totalDAR = totalRevenue ? totalAds / totalRevenue * 100 : 0;
+  let totalROMI = totalAds ? totalProfit / totalAds * 100 : 0;
+
+  let totalRow = document.querySelector('.total');
+  if (totalRow) {
+    totalRow.cells[1].innerText = totalSales;
+    totalRow.cells[2].innerText = totalRevenue.toFixed(2);
+    totalRow.cells[3].innerText = totalCost.toFixed(2);
+    totalRow.cells[4].innerText = totalAds.toFixed(2);
+    totalRow.cells[5].innerText = totalGross.toFixed(2);
+    totalRow.cells[6].innerText = totalMargin.toFixed(2) + '%';
+    totalRow.cells[7].innerText = totalCheck.toFixed(2);
+    totalRow.cells[8].innerText = totalCPO.toFixed(2);
+    totalRow.cells[9].innerText = totalDAR.toFixed(2) + '%';
+    totalRow.cells[10].innerText = totalProfit.toFixed(2);
+    totalRow.cells[11].innerText = totalROMI.toFixed(2) + '%';
+  }
+
+  data.sort((a,b) => b.profit - a.profit);
+
+  for (let i = 1; i < table.rows.length; i++) {
+    let row = table.rows[i];
+    if (row.className === 'total') continue;
+    let name = row.cells[0].querySelector('input').value || 'Категория';
+    let found = data.find(d => d.name === name);
+    if (found) {
+      row.parentNode.appendChild(row);
+    }
+  }
+}
+
+function downloadCSV() {
+  let csv = 'Категория;Продажи;Выручка;Закупка;Реклама;Валовая прибыль;Маржинальность;Средний чек;CPO;ДРР;Прибыль после рекламы;ROMI\n';
+  let table = document.getElementById('table');
+
+  for (let i = 1; i < table.rows.length; i++) {
+    let row = table.rows[i];
+    let values = [];
+    for (let j = 0; j < row.cells.length - 1; j++) {
+      let cell = row.cells[j];
+      values.push(cell.querySelector('input') ? cell.querySelector('input').value : cell.innerText);
+    }
+    csv += values.join(';') + '\n';
+  }
+
+  let blob = new Blob([csv], {type:'text/csv'});
+  let link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'categories.csv';
+  link.click();
+}
+
+addRow();
+addRow();
+addRow();
+addRow();
+addRow();
 </script>
 </body>
 </html>
