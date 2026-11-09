@@ -6,170 +6,107 @@
 <title>Калькулятор эффективности товарных категорий</title>
 <style>
   :root{
-    --green: 0,110,70;
-    --green-soft: rgba(0,110,70,0.06);
     --green-line: rgba(0,110,70,0.35);
+    --green-soft: rgba(0,110,70,0.06);
     --green-text: rgb(0,90,58);
-    --red: 190,50,50;
-    --red-soft: rgba(190,50,50,0.08);
-    --green-cell: rgba(0,140,85,0.10);
-    --bg: #ffffff;
-    --text: #1e2a24;
-    --muted: #6b7a72;
+    --green-cell: rgba(0,140,85,0.12);
+    --red-soft: rgba(190,50,50,0.09);
+    --red-text: rgb(150,40,40);
     --border: rgba(0,110,70,0.18);
+    --muted: #6b7a72;
+    --text: #1e2a24;
     --radius: 10px;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0; padding:24px 16px 60px;
-    background:var(--bg); color:var(--text);
+  body{margin:0;padding:24px 16px 60px;background:#fff;color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    font-size:14px; line-height:1.45;
-  }
-  .wrap{max-width:1180px;margin:0 auto;}
+    font-size:14px;line-height:1.45;}
+  .wrap{max-width:1200px;margin:0 auto;}
 
-  /* -------- Шапка с сетчатой голограммой -------- */
-  header.hero{
-    position:relative; overflow:hidden;
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:26px 26px 22px;
-    margin-bottom:22px;
-    background:
-      radial-gradient(120% 160% at 100% 0%, var(--green-soft), transparent 60%),
-      #fff;
-  }
-  header.hero::before{
-    content:""; position:absolute; inset:-40% -10% auto auto;
-    width:520px; height:520px; pointer-events:none;
-    background-image:
-      linear-gradient(var(--green-line) 1px, transparent 1px),
+  header.hero{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:16px;
+    padding:24px 26px 20px;margin-bottom:20px;
+    background:radial-gradient(120% 160% at 100% 0%, var(--green-soft), transparent 60%), #fff;}
+  header.hero::before{content:"";position:absolute;inset:-40% -10% auto auto;width:520px;height:520px;pointer-events:none;
+    background-image:linear-gradient(var(--green-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--green-line) 1px, transparent 1px);
-    background-size:26px 26px;
-    transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);
-    opacity:.35;
+    background-size:26px 26px;transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);opacity:.32;
     mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
-    -webkit-mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
-  }
-  header.hero h1{
-    margin:0 0 8px; font-size:22px; letter-spacing:.2px; color:var(--green-text);
-    position:relative;
-  }
-  header.hero p{margin:0; max-width:820px; color:var(--muted); position:relative;}
-  .subnote{margin-top:10px; font-size:12.5px; color:var(--green-text); opacity:.85; position:relative;}
+    -webkit-mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);}
+  header.hero h1{margin:0 0 8px;font-size:22px;color:var(--green-text);position:relative;}
+  header.hero p{margin:0;max-width:860px;color:var(--muted);position:relative;}
+  .subnote{margin-top:10px;font-size:12.5px;color:var(--green-text);opacity:.85;position:relative;}
 
-  /* -------- Период -------- */
-  section.card{
-    border:1px solid var(--border); border-radius:var(--radius);
-    padding:18px 18px 16px; margin-bottom:18px; background:#fff;
-  }
-  section.card h2{
-    margin:0 0 12px; font-size:15px; color:var(--green-text); font-weight:600;
-    letter-spacing:.2px;
-  }
-  .dates{display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;}
-  .field{display:flex; flex-direction:column; gap:5px; min-width:190px;}
-  .field label{font-size:12.5px; color:var(--muted);}
+  section.card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;background:#fff;}
+  section.card h2{margin:0 0 12px;font-size:15px;color:var(--green-text);font-weight:600;}
+
+  .dates{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:190px;}
+  .field label{font-size:12.5px;color:var(--muted);}
   input[type="date"], input[type="text"], input[type="number"]{
-    height:38px; padding:0 10px; font-size:14px; color:var(--text);
-    border:1px solid var(--border); border-radius:8px; background:#fff;
-    outline:none; font-family:inherit; width:100%;
-  }
-  input:focus{border-color:rgba(0,110,70,0.55); box-shadow:0 0 0 3px rgba(0,110,70,0.08);}
-  .dates .invalid{border-color:rgba(190,50,50,.6); box-shadow:0 0 0 3px rgba(190,50,50,.08);}
-  .warn{
-    margin-top:12px; padding:11px 14px; font-size:13px;
-    border:1px solid var(--green-line); border-left:4px solid var(--green-line);
-    border-radius:8px; background:var(--green-soft); color:var(--green-text);
-  }
-  .date-error{margin-top:10px; font-size:12.5px; color:rgb(160,40,40); display:none;}
+    height:38px;padding:0 10px;font-size:14px;color:var(--text);border:1px solid var(--border);
+    border-radius:8px;background:#fff;outline:none;font-family:inherit;width:100%;}
+  input:focus{border-color:rgba(0,110,70,0.55);box-shadow:0 0 0 3px rgba(0,110,70,0.08);}
+  .invalid{border-color:rgba(190,50,50,.6);box-shadow:0 0 0 3px rgba(190,50,50,.08);}
+  .warn{margin-top:12px;padding:11px 14px;font-size:13px;border:1px solid var(--green-line);
+    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);color:var(--green-text);}
+  .date-error{margin-top:10px;font-size:12.5px;color:var(--red-text);display:none;}
   .date-error.show{display:block;}
 
-  /* -------- Кнопки -------- */
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:6px;
-    height:38px; padding:0 16px; font-size:13.5px; font-family:inherit;
-    border:1px solid var(--green-line); border-radius:8px;
-    background:rgba(0,110,70,0.04); color:var(--green-text);
-    cursor:pointer; transition:background .15s, border-color .15s;
-    white-space:nowrap;
-  }
-  .btn:hover{background:rgba(0,110,70,0.09); border-color:rgba(0,110,70,0.55);}
-  .btn:disabled{opacity:.4; cursor:not-allowed;}
-  .btn.add{border-style:dashed;}
-  .toolbar{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; align-items:center;}
-  .hint{font-size:12.5px; color:var(--muted);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 16px;
+    font-size:13.5px;font-family:inherit;border:1px solid var(--green-line);border-radius:8px;
+    background:rgba(0,110,70,0.04);color:var(--green-text);cursor:pointer;
+    transition:background .15s,border-color .15s;white-space:nowrap;}
+  .btn:hover{background:rgba(0,110,70,0.09);border-color:rgba(0,110,70,0.55);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center;}
+  .hint{font-size:12.5px;color:var(--muted);}
 
-  /* -------- Таблица -------- */
-  .table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius); background:#fff;}
-  table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%;}
-  th, td{
-    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
-    padding:7px 9px; text-align:right; vertical-align:middle;
-    height:40px; font-variant-numeric:tabular-nums; white-space:nowrap;
-  }
-  thead th{background:rgba(0,110,70,0.05); color:var(--green-text); font-weight:600; font-size:12.5px; text-align:center;}
-  /* Заголовок-категория с полем ввода */
-  thead th.cat-col{padding:6px; min-width:140px; text-align:center; vertical-align:middle;}
-  thead th.cat-col input{height:30px; font-size:13px; text-align:center; border-color:var(--border);}
-  thead th.plus-col{background:transparent; border-right:none; vertical-align:middle; text-align:center; padding:6px;}
-  thead th.plus-col .btn{height:30px; padding:0 12px; border-style:dashed;}
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:#fff;}
+  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
+  th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+    padding:7px 9px;text-align:right;vertical-align:middle;height:40px;
+    font-variant-numeric:tabular-nums;white-space:nowrap;}
+  thead th{background:rgba(0,110,70,0.05);color:var(--green-text);font-weight:600;font-size:12.5px;text-align:center;}
+  thead th.cat-col{padding:6px;min-width:145px;text-align:center;vertical-align:middle;}
+  thead th.cat-col input{height:30px;font-size:13px;text-align:center;}
+  thead th.plus-col{background:transparent;border-right:none;vertical-align:middle;text-align:center;padding:6px;}
+  thead th.plus-col .btn{height:32px;padding:0 12px;border-style:dashed;}
 
-  /* Первая колонка показателей */
-  th.rowhead, td.rowhead{
-    position:sticky; left:0; z-index:2; text-align:left;
-    min-width:210px; max-width:230px; white-space:normal; font-weight:500;
-    background:#fff; border-left:none;
-  }
-  thead th.rowhead{background:rgba(0,110,70,0.05); z-index:3;}
+  th.rowhead, td.rowhead{position:sticky;left:0;z-index:2;text-align:left;min-width:215px;max-width:235px;
+    white-space:normal;font-weight:500;background:#fff;border-left:none;}
+  thead th.rowhead{background:rgba(0,110,70,0.05);z-index:3;}
   tbody tr:nth-child(even) td.rowhead{background:#fcfdfc;}
 
-  td.cell-input{padding:4px 6px; text-align:center;}
-  td.cell-input input{height:30px; text-align:right; font-size:13px;}
-  td.calc{color:var(--text); font-size:13px; text-align:right;}
-  td.dash{color:var(--muted); text-align:center;}
+  td.cell-input{padding:4px 6px;text-align:center;}
+  td.cell-input input{height:30px;text-align:right;font-size:13px;}
+  td.calc{color:var(--text);font-size:13px;text-align:right;}
+  td.pos{background:var(--green-cell);color:var(--green-text);font-weight:600;}
+  td.neg{background:var(--red-soft);color:var(--red-text);font-weight:600;}
 
-  /* Подсветка знака */
-  td.pos{background:var(--green-cell); color:var(--green-text); font-weight:600;}
-  td.neg{background:var(--red-soft); color:rgb(150,40,40); font-weight:600;}
+  .del-btn{height:26px;width:28px;padding:0;font-size:13px;line-height:1;border:1px solid var(--border);
+    border-radius:6px;background:rgba(190,50,50,.04);color:var(--red-text);cursor:pointer;font-family:inherit;}
+  .del-btn:hover{background:rgba(190,50,50,.10);border-color:rgba(190,50,50,.5);}
 
-  .del-btn{
-    height:26px; width:28px; padding:0; font-size:13px; line-height:1;
-    border:1px solid var(--border); border-radius:6px; background:rgba(190,50,50,.04);
-    color:rgb(150,40,40); cursor:pointer; font-family:inherit;
-  }
-  .del-btn:hover{background:rgba(190,50,50,.10); border-color:rgba(190,50,50,.5);}
-
-  .result-period{margin:10px 0 0; font-size:12.5px; color:var(--green-text); display:none;}
+  .result-period{margin:10px 0 0;font-size:12.5px;color:var(--green-text);display:none;}
   .result-period.show{display:block;}
 
-  /* -------- Сравнение -------- */
-  .compare-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px;}
-  .compare-row select{
-    height:38px; padding:0 10px; font-size:13.5px; font-family:inherit;
-    border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text); outline:none;
-  }
+  .compare-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+  .compare-row select{height:38px;padding:0 10px;font-size:13.5px;font-family:inherit;
+    border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;}
   .compare-row select:focus{border-color:rgba(0,110,70,0.55);}
-  .summary{display:grid; gap:8px; font-size:13px;}
-  .summary .item{
-    padding:9px 12px; border:1px solid var(--border); border-radius:8px;
-    background:var(--green-soft); color:var(--green-text);
-  }
-  .summary .item.neg{background:var(--red-soft); border-color:rgba(190,50,50,.3); color:rgb(150,40,40);}
-  .summary .label{font-size:12px; color:var(--muted); margin-right:6px;}
+  .summary{display:grid;gap:8px;font-size:13px;}
+  .summary .item{padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+    background:var(--green-soft);color:var(--green-text);}
+  .summary .item.neg{background:var(--red-soft);border-color:rgba(190,50,50,.3);color:var(--red-text);}
+  .summary .label{font-size:12px;color:var(--muted);margin-right:6px;}
   .summary .neg .label{color:rgba(150,40,40,.75);}
 
-  /* -------- Формулы -------- */
-  .formulas{font-size:13px; color:#2b3a32;}
-  .formulas ul{margin:0; padding-left:18px;}
+  .formulas{font-size:13px;color:#2b3a32;}
+  .formulas ul{margin:0;padding-left:18px;}
   .formulas li{margin-bottom:5px;}
-  .formulas .important{
-    margin-top:12px; padding:11px 14px; border:1px solid var(--green-line);
-    border-left:4px solid var(--green-line); border-radius:8px;
-    background:var(--green-soft); color:var(--green-text); font-size:13px;
-  }
-  .muted{color:var(--muted);}
-  .hidden{display:none !important;}
+  .formulas .important{margin-top:12px;padding:11px 14px;border:1px solid var(--green-line);
+    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);
+    color:var(--green-text);font-size:13px;}
 </style>
 </head>
 <body>
@@ -181,40 +118,25 @@
     <p class="subnote">Показатели отражают текущий срез за выбранный период. Это не окончательные данные для масштабирования.</p>
   </header>
 
-  <!-- Период -->
   <section class="card">
     <h2>Период анализа</h2>
     <div class="dates">
-      <div class="field">
-        <label for="dateFrom">Период анализа: начало</label>
-        <input type="date" id="dateFrom">
-      </div>
-      <div class="field">
-        <label for="dateTo">Период анализа: окончание</label>
-        <input type="date" id="dateTo">
-      </div>
+      <div class="field"><label for="dateFrom">Период анализа: начало</label><input type="date" id="dateFrom"></div>
+      <div class="field"><label for="dateTo">Период анализа: окончание</label><input type="date" id="dateTo"></div>
     </div>
     <div class="warn">⚠ Все данные по товарным категориям должны быть указаны за один и тот же период. Не сравнивайте показатели, рассчитанные за разные даты.</div>
     <div class="date-error" id="dateError">Укажите обе даты, и дата начала не должна быть позже даты окончания.</div>
   </section>
 
-  <!-- Таблица -->
   <section class="card">
     <div class="toolbar">
       <button class="btn" id="btnCalc">Рассчитать</button>
       <button class="btn" id="btnCsv">Скачать CSV</button>
       <span class="hint">Можно добавить до 20 категорий. Названия можно менять: например, «Тормозные колодки», «Фильтры», «Амортизаторы», «Масло», «Оптика».</span>
     </div>
-
     <div class="table-scroll">
       <table id="calcTable">
-        <thead>
-          <tr id="headRow">
-            <th class="rowhead">Показатель</th>
-            <!-- категории-колонки рендерятся JS -->
-            <th class="plus-col"><button class="btn" id="btnAdd" title="Добавить категорию">+ Добавить категорию</button></th>
-          </tr>
-        </thead>
+        <thead><tr id="headRow"><th class="rowhead">Показатель</th></tr></thead>
         <tbody>
           <tr data-row="orders"><td class="rowhead">Количество оплаченных заказов</td></tr>
           <tr data-row="revenue"><td class="rowhead">Выручка, ₽</td></tr>
@@ -234,11 +156,10 @@
     <p class="result-period" id="resultPeriod"></p>
   </section>
 
-  <!-- Сравнение -->
-  <section class="card" id="compareSection">
+  <section class="card">
     <h2>Сравнение категорий на текущий момент</h2>
     <div class="compare-row">
-      <label for="sortSelect" class="muted">Сортировать по:</label>
+      <label for="sortSelect" style="font-size:13px;color:var(--muted);">Сортировать по:</label>
       <select id="sortSelect">
         <option value="profit">Прибыль после рекламы</option>
         <option value="romi">ROMI</option>
@@ -249,7 +170,7 @@
         <option value="gross">Валовая прибыль</option>
         <option value="revenue">Выручка</option>
       </select>
-      <label class="muted" style="display:flex;align-items:center;gap:6px;font-size:13px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="ascChk" style="width:16px;height:16px;"> по возрастанию
       </label>
       <select id="filterSelect">
@@ -257,11 +178,11 @@
         <option value="profit">Только прибыльные</option>
         <option value="loss">Только убыточные</option>
       </select>
+      <button class="btn" id="btnSortApply">Применить сортировку</button>
     </div>
     <div class="summary" id="summary"></div>
   </section>
 
-  <!-- Формулы -->
   <section class="card formulas">
     <h2>Как считаются показатели</h2>
     <ul>
@@ -285,13 +206,13 @@
   const MAX_CATS = 20;
   const ROW_KEYS = ["orders","revenue","cost","ads","gross","margin","avgcheck","cpo","drr","profit","romi","delete"];
   const INPUT_ROWS = ["orders","revenue","cost","ads"];
-  const CALC_ROWS = ["gross","margin","avgcheck","cpo","drr","profit","romi"];
 
   const table = document.getElementById("calcTable");
   const headRow = document.getElementById("headRow");
-  const btnAdd = document.getElementById("btnAdd");
+  const btnAdd = document.getElementById("btnAdd"); // создаётся динамически
   const btnCalc = document.getElementById("btnCalc");
   const btnCsv = document.getElementById("btnCsv");
+  const btnSortApply = document.getElementById("btnSortApply");
   const dateFrom = document.getElementById("dateFrom");
   const dateTo = document.getElementById("dateTo");
   const dateError = document.getElementById("dateError");
@@ -301,18 +222,16 @@
   const filterSelect = document.getElementById("filterSelect");
   const summaryEl = document.getElementById("summary");
 
-  // состояние: массив категорий {id, name, orders, revenue, cost, ads}
-  // порядок массива = порядок ввода; сортировка применяется при рендере после "Рассчитать"
   let categories = [];
   let catIdSeq = 0;
-  let sortedOrder = null;       // массив id после расчёта
-  let calculated = false;       // были ли нажаты "Рассчитать"
-  let lastCalc = null;          // рассчитанные значения по id
+  let orderIds = [];       // текущий порядок отображения колонок
+  let calcMap = {};        // id -> рассчитанные значения (всегда актуальные)
 
   function addCategory(name){
     if (categories.length >= MAX_CATS) return null;
     const c = {id: ++catIdSeq, name: name || "", orders:"", revenue:"", cost:"", ads:""};
     categories.push(c);
+    orderIds.push(c.id);
     return c;
   }
 
@@ -321,16 +240,14 @@
     const n = Number(String(v).replace(",", ".").trim());
     return isFinite(n) ? n : NaN;
   }
-
   function money(v){ return v.toFixed(2).replace(".", ","); }
   function pct(v){ return v.toFixed(1).replace(".", ","); }
 
-  // расчёт одной категории
   function calcCategory(c){
     const orders = num(c.orders), revenue = num(c.revenue), cost = num(c.cost), ads = num(c.ads);
     const r = {gross:null, margin:null, avgcheck:null, cpo:null, drr:null, profit:null, romi:null};
     if (!isNaN(revenue) && !isNaN(cost)) r.gross = revenue - cost;
-    if (r.gross !== null && revenue !== 0) r.margin = revenue === 0 ? null : r.gross / revenue * 100;
+    if (r.gross !== null && !isNaN(revenue) && revenue !== 0) r.margin = r.gross / revenue * 100;
     if (!isNaN(orders) && orders !== 0 && !isNaN(revenue)) r.avgcheck = revenue / orders;
     if (!isNaN(orders) && orders !== 0 && !isNaN(ads)) r.cpo = ads / orders;
     if (!isNaN(revenue) && revenue !== 0 && !isNaN(ads)) r.drr = ads / revenue * 100;
@@ -339,14 +256,18 @@
     return r;
   }
 
+  // Пересчёт всех категорий — вызывается при любом изменении и при старте
+  function recalcAll(){
+    calcMap = {};
+    categories.forEach(c => { calcMap[c.id] = calcCategory(c); });
+  }
+
   function formatVal(rowKey, val){
     if (val === null || val === undefined || isNaN(val)) return "—";
-    if (rowKey === "orders") return String(Math.round(val));
     if (["gross","avgcheck","cpo","profit"].includes(rowKey)) return money(val) + " ₽";
     if (["margin","drr","romi"].includes(rowKey)) return pct(val) + "%";
     return String(val);
   }
-
   function signClass(rowKey, val){
     if (val === null || val === undefined || isNaN(val)) return "";
     if (["profit","romi","margin"].includes(rowKey)) {
@@ -356,17 +277,12 @@
     return "";
   }
 
-  // ---------- отрисовка ----------
+  // ---------- рендер ----------
   function render(){
-    // порядок колонок
-    const order = sortedOrder ? sortedOrder.slice() : categories.map(c => c.id);
-    // при фильтре прибыльных/убыточных используем рассчитанные значения
-    let visibleIds = order;
-    if (calculated && lastCalc) {
-      const f = filterSelect.value;
-      if (f === "profit") visibleIds = order.filter(id => { const r = lastCalc[id]; return r && r.profit !== null && r.profit > 0; });
-      if (f === "loss") visibleIds = order.filter(id => { const r = lastCalc[id]; return r && r.profit !== null && r.profit < 0; });
-    }
+    // порядок: orderIds, но фильтр по прибыльности
+    let visible = orderIds.slice();
+    if (filterSelect.value === "profit") visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit>0; });
+    if (filterSelect.value === "loss")   visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit<0; });
 
     // шапка
     headRow.querySelectorAll("th.cat-col, th.plus-col").forEach(el => el.remove());
@@ -382,9 +298,8 @@
     plusTh.appendChild(addBtn);
     headRow.appendChild(plusTh);
 
-    // вставляем категории ПЕРЕД plus-колонкой
     const frag = document.createDocumentFragment();
-    visibleIds.forEach(id => {
+    visible.forEach(id => {
       const c = categories.find(x => x.id === id);
       if (!c) return;
       const th = document.createElement("th");
@@ -393,7 +308,7 @@
       inp.type = "text";
       inp.value = c.name;
       inp.placeholder = "Название категории";
-      inp.addEventListener("input", e => { c.name = e.target.value; markDirty(); });
+      inp.addEventListener("input", e => { c.name = e.target.value; renderSummary(visible); });
       th.appendChild(inp);
       frag.appendChild(th);
     });
@@ -404,7 +319,7 @@
       const tr = table.querySelector('tr[data-row="' + rowKey + '"]');
       tr.querySelectorAll("td:not(.rowhead)").forEach(td => td.remove());
       const fragRow = document.createDocumentFragment();
-      visibleIds.forEach(id => {
+      visible.forEach(id => {
         const c = categories.find(x => x.id === id);
         if (!c) return;
         const td = document.createElement("td");
@@ -415,19 +330,24 @@
           inp.step = rowKey === "orders" ? "1" : "0.01";
           inp.min = "0";
           inp.value = c[rowKey] === "" ? "" : c[rowKey];
-          inp.addEventListener("input", e => { c[rowKey] = e.target.value; markDirty(); });
+          inp.addEventListener("input", e => {
+            c[rowKey] = e.target.value;
+            recalcAll();          // сразу пересчитываем все
+            updateCalcCells(visible); // обновляем только расчётные ячейки (без перестройки инпутов)
+            renderSummary(visible);
+          });
           td.appendChild(inp);
         } else if (rowKey === "delete") {
           td.className = "cell-input";
           const b = document.createElement("button");
-          b.className = "del-btn";
-          b.textContent = "✕";
-          b.title = "Удалить категорию";
+          b.className = "del-btn"; b.textContent = "✕"; b.title = "Удалить категорию";
           b.addEventListener("click", () => removeCategory(id));
           td.appendChild(b);
         } else {
-          const r = calculated && lastCalc ? lastCalc[id] : null;
+          const r = calcMap[id];
           const val = r ? r[rowKey] : null;
+          td.dataset.calc = rowKey;
+          td.dataset.cat = id;
           td.className = "calc " + signClass(rowKey, val);
           td.textContent = formatVal(rowKey, val);
         }
@@ -436,8 +356,7 @@
       tr.appendChild(fragRow);
     });
 
-    // нижний период
-    if (calculated) {
+    if (dateFrom.value && dateTo.value) {
       resultPeriod.textContent = "Период анализа: " + fmtDate(dateFrom.value) + " — " + fmtDate(dateTo.value) +
         ". Показатели — текущий срез, не окончательные данные для масштабирования.";
       resultPeriod.classList.add("show");
@@ -446,7 +365,22 @@
       resultPeriod.classList.remove("show");
     }
 
-    renderSummary(visibleIds);
+    renderSummary(visible);
+  }
+
+  // обновить только расчётные ячейки (быстро, без перестройки DOM-инпутов)
+  function updateCalcCells(visible){
+    visible.forEach(id => {
+      const r = calcMap[id];
+      if (!r) return;
+      ["gross","margin","avgcheck","cpo","drr","profit","romi"].forEach(key => {
+        const td = table.querySelector('td[data-cat="'+id+'"][data-calc="'+key+'"]');
+        if (!td) return;
+        const val = r[key];
+        td.className = "calc " + signClass(key, val);
+        td.textContent = formatVal(key, val);
+      });
+    });
   }
 
   function fmtDate(v){
@@ -455,31 +389,28 @@
     return p[2] + "." + p[1] + "." + p[0];
   }
 
-  function renderSummary(visibleIds){
-    if (!calculated || !lastCalc) {
-      summaryEl.innerHTML = '<div class="item"><span class="label">Нажмите «Рассчитать», чтобы увидеть сравнение категорий.</span></div>';
-      return;
-    }
-    const rows = visibleIds.map(id => ({id, c: categories.find(x => x.id === id), r: lastCalc[id]}))
-      .filter(x => x.c && x.r);
-    if (!rows.length) {
+  function renderSummary(visible){
+    if (!visible.length) {
       summaryEl.innerHTML = '<div class="item"><span class="label">Нет категорий для сравнения.</span></div>';
       return;
     }
-    function best(key){
-      let best = null;
-      rows.forEach(x => { const v = x.r[key]; if (v === null || isNaN(v)) return; if (!best || v > best.v) best = {v, c:x.c}; });
-      return best ? best.c.name || "Без названия" : "—";
+    const rows = visible.map(id => ({id, c: categories.find(x=>x.id===id), r: calcMap[id]}))
+      .filter(x => x.c && x.r);
+    if (!rows.length) {
+      summaryEl.innerHTML = '<div class="item"><span class="label">Нет данных.</span></div>';
+      return;
     }
-    const losing = rows.filter(x => x.r.profit !== null && x.r.profit < 0).map(x => x.c.name || "Без названия");
+    function best(key){
+      let best=null;
+      rows.forEach(x=>{ const v=x.r[key]; if(v===null||isNaN(v))return; if(!best||v>best.v)best={v,c:x.c}; });
+      return best ? (best.c.name || "Без названия") : "—";
+    }
+    const losing = rows.filter(x => x.r.profit!==null && x.r.profit<0).map(x => x.c.name || "Без названия");
     let html = "";
     html += '<div class="item"><span class="label">Лучшая по прибыли после рекламы:</span>' + esc(best("profit")) + '</div>';
     html += '<div class="item"><span class="label">Лучшая по ROMI:</span>' + esc(best("romi")) + '</div>';
-    if (losing.length) {
-      html += '<div class="item neg"><span class="label">Убыточные категории:</span>' + losing.map(esc).join(", ") + '</div>';
-    } else {
-      html += '<div class="item"><span class="label">Убыточные категории:</span>нет</div>';
-    }
+    if (losing.length) html += '<div class="item neg"><span class="label">Убыточные категории:</span>' + losing.map(esc).join(", ") + '</div>';
+    else html += '<div class="item"><span class="label">Убыточные категории:</span>нет</div>';
     summaryEl.innerHTML = html;
   }
 
@@ -489,31 +420,15 @@
   function onAdd(){
     if (categories.length >= MAX_CATS) return;
     addCategory("");
-    markDirty();
+    recalcAll();
     render();
   }
 
   function removeCategory(id){
     categories = categories.filter(c => c.id !== id);
-    if (sortedOrder) sortedOrder = sortedOrder.filter(x => x !== id);
-    if (lastCalc) delete lastCalc[id];
-    markDirty();
+    orderIds = orderIds.filter(x => x !== id);
+    delete calcMap[id];
     render();
-  }
-
-  // изменение поля => возврат к порядку ввода, сброс сортировки
-  function markDirty(){
-    if (calculated) {
-      sortedOrder = null;
-    }
-    // пересчитываем на лету (без сортировки), чтобы цифры не "залипали"
-    recalc();
-  }
-
-  function recalc(){
-    lastCalc = {};
-    categories.forEach(c => { lastCalc[c.id] = calcCategory(c); });
-    calculated = true; // значения показываем, но сортировка не применяется до "Рассчитать"
   }
 
   function validateDates(){
@@ -534,28 +449,28 @@
     return true;
   }
 
-  function doCalculate(){
+  function applySort(){
     if (!validateDates()) return;
-    // пересчёт всех
-    lastCalc = {};
-    categories.forEach(c => { lastCalc[c.id] = calcCategory(c); });
-    calculated = true;
-
-    // сортировка по выбранной метрике
     const key = sortSelect.value;
     const asc = ascChk.checked;
     const arr = categories.slice();
     arr.sort((x, y) => {
-      const rx = lastCalc[x.id], ry = lastCalc[y.id];
-      let vx = rx ? rx[key] : null, vy = ry ? ry[key] : null;
+      const rx = calcMap[x.id], ry = calcMap[y.id];
+      const vx = rx ? rx[key] : null, vy = ry ? ry[key] : null;
       const nx = (vx === null || isNaN(vx)), ny = (vy === null || isNaN(vy));
       if (nx && ny) return 0;
       if (nx) return 1;
       if (ny) return -1;
       return asc ? vx - vy : vy - vx;
     });
-    sortedOrder = arr.map(c => c.id);
+    orderIds = arr.map(c => c.id);
     render();
+  }
+
+  function doCalculate(){
+    if (!validateDates()) return;
+    recalcAll();
+    applySort();
   }
 
   function toCsv(){
@@ -564,20 +479,31 @@
     lines.push("Период анализа:;" + fmtDate(dateFrom.value) + ";" + fmtDate(dateTo.value));
     lines.push("Показатели — текущий срез за период. Не окончательные данные для масштабирования.");
     lines.push("");
-    // заголовок: Показатель + категории
-    const header = ["Показатель"].concat(categories.map(c => c.name || "Без названия"));
-    lines.push(header.map(csvCell).join(sep));
-    // строки
-    ROW_KEYS.filter(k => k !== "delete").forEach(rowKey => {
-      const row = [rowLabel(rowKey)];
-      categories.forEach(c => {
+    // категории в строках (для Excel): строки = категории, столбцы = показатели
+    const metrics = [
+      ["orders","Количество оплаченных заказов"],
+      ["revenue","Выручка, ₽"],
+      ["cost","Закупочная стоимость, ₽"],
+      ["ads","Рекламные расходы, ₽"],
+      ["gross","Валовая прибыль"],
+      ["margin","Маржинальность"],
+      ["avgcheck","Средний чек"],
+      ["cpo","CPO"],
+      ["drr","ДРР"],
+      ["profit","Прибыль после рекламы"],
+      ["romi","ROMI"]
+    ];
+    lines.push(["Категория"].concat(metrics.map(m => m[1])).map(csvCell).join(sep));
+    categories.forEach(c => {
+      const r = calcMap[c.id] || calcCategory(c);
+      const row = [c.name || "Без названия"];
+      metrics.forEach(([key]) => {
         let v;
-        if (INPUT_ROWS.includes(rowKey)) v = c[rowKey];
+        if (INPUT_ROWS.includes(key)) v = c[key];
         else {
-          const r = lastCalc && lastCalc[c.id] ? lastCalc[c.id] : calcCategory(c);
-          v = r[rowKey];
+          v = r[key];
           if (v !== null && v !== undefined && !isNaN(v)) {
-            v = ["margin","drr","romi"].includes(rowKey) ? pct(v) + "%" : money(v);
+            v = ["margin","drr","romi"].includes(key) ? pct(v) + "%" : money(v);
           } else v = "—";
         }
         row.push(v === "" ? "" : v);
@@ -587,18 +513,10 @@
     const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8;"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const name = "kategorii_" + (dateFrom.value || "start") + "_" + (dateTo.value || "end") + ".csv";
-    a.href = url; a.download = name;
+    a.href = url;
+    a.download = "kategorii_" + (dateFrom.value || "start") + "_" + (dateTo.value || "end") + ".csv";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  function rowLabel(k){
-    return {
-      orders:"Количество оплаченных заказов", revenue:"Выручка, ₽", cost:"Закупочная стоимость, ₽",
-      ads:"Рекламные расходы, ₽", gross:"Валовая прибыль", margin:"Маржинальность",
-      avgcheck:"Средний чек", cpo:"CPO", drr:"ДРР", profit:"Прибыль после рекламы", romi:"ROMI"
-    }[k] || k;
   }
 
   function csvCell(v){
@@ -608,28 +526,17 @@
   }
 
   // ---------- привязки ----------
-  btnAdd.addEventListener("click", onAdd);
   btnCalc.addEventListener("click", doCalculate);
   btnCsv.addEventListener("click", toCsv);
-  sortSelect.addEventListener("change", () => { if (calculated) doCalculate(); });
-  ascChk.addEventListener("change", () => { if (calculated) doCalculate(); });
+  btnSortApply.addEventListener("click", applySort);
   filterSelect.addEventListener("change", render);
+  dateFrom.addEventListener("change", () => { validateDates(); render(); });
+  dateTo.addEventListener("change", () => { validateDates(); render(); });
 
-  dateFrom.addEventListener("change", () => { validateDates(); });
-  dateTo.addEventListener("change", () => { validateDates(); });
-
-  // старт: 1 категория
+  // старт: одна категория, всё считается сразу
   addCategory("");
-  recalc();
-  calculated = false; // до нажатия «Рассчитать» расчётные ячейки показываем как «—»
+  recalcAll();
   render();
-  // после старта принудительно скрываем значения до расчёта
-  (function hideInitial(){
-    // рендер уже показал значения, т.к. recalc выставил calculated=true; сбросим
-    calculated = false;
-    lastCalc = null;
-    render();
-  })();
 
 })();
 </script>
