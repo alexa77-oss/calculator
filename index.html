@@ -1,227 +1,961 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101a25">
 <title>Калькулятор эффективности товарных категорий</title>
+
 <style>
-body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px; }
-.card { background:#fff; padding:20px; border-radius:10px; max-width:1200px; margin:auto; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-h1 { font-size:22px; }
-p { color:#555; }
-table { width:100%; border-collapse:collapse; margin-top:15px; }
-th, td { border:1px solid #ddd; padding:8px; text-align:center; font-size:14px; }
-th { background:#eef2f7; }
-input { width:100%; padding:5px; box-sizing:border-box; }
-button { padding:10px 15px; margin:10px 5px 0 0; background:#2c7be5; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-button.secondary { background:#6c757d; }
-.total { background:#eef6ff; font-weight:bold; }
-.note { margin-top:20px; font-size:14px; color:#555; }
+:root {
+  --bg: #101923;
+  --panel: #172532;
+  --panel2: #1b2d3b;
+  --line: rgba(95, 211, 218, .19);
+  --cyan: #70dce0;
+  --cyan2: #a0f2ed;
+  --text: #e8f0f3;
+  --muted: #91a5b1;
+  --green: #76d6a5;
+  --red: #ff8585;
+  --border: rgba(155, 204, 215, .17);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 34px 22px 60px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(46, 123, 139, .17), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.55;
+}
+
+.container {
+  max-width: 1450px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: clamp(27px, 4vw, 42px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -.8px;
+  margin: 0 0 16px;
+}
+
+.subtitle {
+  color: #a8bac3;
+  max-width: 780px;
+  font-size: 15px;
+}
+
+.emblem {
+  width: 220px;
+  height: 220px;
+  justify-self: center;
+  opacity: .9;
+}
+
+.section {
+  background: rgba(23, 37, 50, .83);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 23px;
+  margin-bottom: 22px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.13);
+}
+
+.section-title {
+  font-size: 19px;
+  font-weight: 500;
+  margin: 0 0 16px;
+  letter-spacing: .2px;
+}
+
+.section-title span {
+  color: var(--cyan);
+  margin-right: 8px;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.period-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+label {
+  font-size: 12px;
+  color: #a9bdc7;
+  letter-spacing: .3px;
+}
+
+input {
+  background: #101c27;
+  border: 1px solid rgba(112,220,224,.25);
+  color: var(--text);
+  border-radius: 7px;
+  padding: 10px 12px;
+  font: inherit;
+  min-width: 0;
+}
+
+input:focus {
+  outline: 1px solid var(--cyan);
+  border-color: var(--cyan);
+}
+
+input[type="date"] {
+  width: 205px;
+  color-scheme: dark;
+}
+
+.period-warning {
+  margin-top: 16px;
+  padding: 12px 15px;
+  border-left: 2px solid var(--cyan);
+  background: rgba(89, 190, 195, .07);
+  color: #b9cbd2;
+  font-size: 13px;
+}
+
+.period-warning strong {
+  color: var(--cyan2);
+  font-weight: 600;
+}
+
+.table-description {
+  color: var(--muted);
+  font-size: 13px;
+  margin: -7px 0 17px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1430px;
+}
+
+th, td {
+  border-bottom: 1px solid rgba(155,204,215,.12);
+  padding: 11px 9px;
+  text-align: left;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+th {
+  background: #1e3442;
+  color: #b8d8dd;
+  font-weight: 500;
+  white-space: normal;
+  min-width: 90px;
+}
+
+th:first-child { min-width: 185px; }
+th:last-child { min-width: 75px; }
+
+td {
+  color: #dce8ec;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: rgba(112,220,224,.035);
+}
+
+td input {
+  width: 100%;
+  min-width: 90px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+td:first-child input { min-width: 165px; }
+
+.calc-cell {
+  color: var(--cyan2);
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-positive {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.profit-negative {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.delete-btn {
+  border: 1px solid rgba(255,133,133,.3);
+  color: #ffaaaa;
+  background: transparent;
+  padding: 6px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.delete-btn:hover {
+  background: rgba(255,133,133,.1);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 17px;
+}
+
+.btn {
+  border: 1px solid rgba(112,220,224,.4);
+  background: rgba(80,180,188,.1);
+  color: var(--cyan2);
+  padding: 11px 19px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.btn:hover {
+  background: rgba(80,180,188,.2);
+  border-color: var(--cyan);
+}
+
+.btn-primary {
+  background: #286d78;
+  color: white;
+  border-color: #4cabb2;
+}
+
+.btn-primary:hover { background: #337f89; }
+
+.btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.counter {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.counter strong { color: var(--cyan); }
+
+.results-section {
+  margin-top: 30px;
+}
+
+.results-intro {
+  color: var(--muted);
+  font-size: 13px;
+  margin: -7px 0 16px;
+}
+
+.results-table { min-width: 1500px; }
+
+.results-table th {
+  position: static;
+}
+
+.status {
+  white-space: normal;
+  min-width: 190px;
+  font-size: 11px;
+}
+
+.status-ok { color: var(--green); }
+.status-bad { color: var(--red); }
+.status-neutral { color: #a9bdc7; }
+
+.empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--muted);
+}
+
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px 25px;
+}
+
+.formula {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(155,204,215,.1);
+  font-size: 13px;
+  color: #b4c5cc;
+}
+
+.formula strong {
+  color: var(--cyan2);
+  font-weight: 500;
+}
+
+.formula-note {
+  margin-top: 17px;
+  padding: 14px 16px;
+  background: rgba(89,190,195,.07);
+  border-left: 2px solid var(--cyan);
+  border-radius: 3px;
+  font-size: 13px;
+  color: #b7c9d0;
+}
+
+.footer-note {
+  color: #8fa4ae;
+  font-size: 13px;
+  line-height: 1.65;
+  margin-top: 17px;
+}
+
+.message {
+  display: none;
+  margin: 14px 0;
+  padding: 11px 14px;
+  border: 1px solid rgba(255,133,133,.35);
+  color: #ffb0b0;
+  background: rgba(255,133,133,.07);
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+@media(max-width: 750px) {
+  body { padding: 20px 12px 40px; }
+  .hero { grid-template-columns: 1fr; }
+  .emblem {
+    width: 145px;
+    height: 145px;
+    grid-row: 1;
+  }
+  .section { padding: 16px; }
+  .formula-grid { grid-template-columns: 1fr; }
+  input[type="date"] { width: 100%; }
+  .period-grid { display: grid; }
+}
 </style>
 </head>
+
 <body>
-<div class="card">
-<h1>Калькулятор эффективности товарных категорий</h1>
-<p>Введите данные по категориям за выбранный период. Калькулятор рассчитает валовую прибыль, маржинальность, стоимость заказа, ДРР, прибыль после рекламы и ROMI — и отсортирует категории по прибыли после рекламных расходов.</p>
+<div class="container">
 
-<label>Период анализа: начало</label>
-<input type="date" id="start">
+<header class="hero">
+  <div>
+    <div class="eyebrow">ANALYTICS / AD PERFORMANCE</div>
+    <h1>Калькулятор эффективности товарных категорий</h1>
+    <p class="subtitle">
+      Сравните финансовые результаты рекламного продвижения разных товарных категорий.
+      Калькулятор рассчитает прибыль после рекламных расходов, ROMI и другие показатели,
+      а затем расположит категории по прибыльности.
+    </p>
+  </div>
 
-<label>Период анализа: окончание</label>
-<input type="date" id="end">
+  <svg class="emblem" viewBox="0 0 220 220" fill="none"
+       xmlns="http://www.w3.org/2000/svg" aria-label="Голографическая схема">
+    <defs>
+      <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+        <path d="M12 0H0V12" stroke="#70DCE0" stroke-opacity=".23"
+              stroke-width=".5"/>
+      </pattern>
+      <radialGradient id="glow">
+        <stop offset="0" stop-color="#70DCE0" stop-opacity=".18"/>
+        <stop offset="1" stop-color="#70DCE0" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="110" cy="110" r="104" fill="url(#glow)"/>
+    <circle cx="110" cy="110" r="91" stroke="#70DCE0"
+            stroke-opacity=".25" stroke-width=".7"/>
+    <circle cx="110" cy="110" r="77" stroke="#70DCE0"
+            stroke-opacity=".5" stroke-width=".7" stroke-dasharray="2 5"/>
+    <path d="M110 15V205M15 110H205M43 43L177 177M177 43L43 177"
+          stroke="#70DCE0" stroke-opacity=".3" stroke-width=".6"/>
+    <circle cx="110" cy="110" r="64" fill="url(#grid)"
+            stroke="#70DCE0" stroke-opacity=".6" stroke-width="1"/>
+    <path d="M110 53L159 81V139L110 167L61 139V81L110 53Z"
+          stroke="#8BE8E5" stroke-width="1.2"/>
+    <path d="M110 53V110M61 81L110 110L159 81M110 110V167"
+          stroke="#8BE8E5" stroke-opacity=".8" stroke-width="1"/>
+    <path d="M75 129L96 108L112 119L146 84"
+          stroke="#B1F4EB" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round"/>
+    <circle cx="75" cy="129" r="2.5" fill="#A0F2ED"/>
+    <circle cx="96" cy="108" r="2.5" fill="#A0F2ED"/>
+    <circle cx="112" cy="119" r="2.5" fill="#A0F2ED"/>
+    <circle cx="146" cy="84" r="3" fill="#A0F2ED"/>
+    <circle cx="110" cy="110" r="4" fill="#A0F2ED"/>
+    <path d="M110 5V19M110 201V215M5 110H19M201 110H215"
+          stroke="#70DCE0" stroke-width="1.2"/>
+  </svg>
+</header>
 
-<button onclick="addRow()">+ Добавить категорию</button>
-<button onclick="calculate()">Рассчитать</button>
-<button class="secondary" onclick="downloadCSV()">Скачать CSV</button>
+<section class="section">
+  <h2 class="section-title"><span>01</span> Период анализа</h2>
 
-<table id="table">
-<tr>
-<th>Категория</th>
-<th>Завершённые продажи</th>
-<th>Выручка, ₽</th>
-<th>Закупочная стоимость, ₽</th>
-<th>Рекламные расходы, ₽</th>
-<th>Валовая прибыль</th>
-<th>Маржинальность</th>
-<th>Средний чек</th>
-<th>CPO</th>
-<th>ДРР</th>
-<th>Прибыль после рекламы</th>
-<th>ROMI</th>
-<th></th>
-</tr>
-</table>
+  <div class="period-grid">
+    <div class="field">
+      <label for="dateFrom">Период анализа: начало</label>
+      <input type="date" id="dateFrom" required>
+    </div>
 
-<button onclick="addTotalRow()">Добавить итог</button>
+    <div class="field">
+      <label for="dateTo">Период анализа: окончание</label>
+      <input type="date" id="dateTo" required>
+    </div>
+  </div>
 
-<p class="note">
-Можно добавить до 20 категорий. Названия можно менять: например, «Тормозные колодки», «Фильтры», «Амортизаторы», «Масло», «Оптика».
-</p>
+  <div class="period-warning">
+    <strong>Важно:</strong> все данные по товарным категориям должны быть указаны
+    за один и тот же период. Количество завершённых продаж, выручка,
+    закупочная стоимость и рекламные расходы должны относиться именно к выбранным датам.
+    Не сравнивайте показатели, рассчитанные за разные периоды.
+  </div>
+</section>
 
-<div class="note">
-<strong>Как считаются показатели</strong><br>
-Валовая прибыль = выручка − закупочная стоимость проданных товаров.<br>
-Маржинальность = валовая прибыль / выручка × 100%.<br>
-Средний чек = выручка / завершённые продажи.<br>
-CPO = рекламные расходы / завершённые продажи.<br>
-ДРР = рекламные расходы / выручка × 100%.<br>
-Прибыль после рекламы = валовая прибыль − рекламные расходы.<br>
-ROMI = прибыль после рекламы / рекламные расходы × 100%.
-</div>
+<section class="section">
+  <h2 class="section-title"><span>02</span> Исходные данные и расчёты</h2>
+
+  <p class="table-description">
+    Заполните данные по рекламируемым категориям. Расчётные показатели
+    появятся после нажатия кнопки «Рассчитать».
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Категория</th>
+          <th>Завершённые продажи, шт.</th>
+          <th>Выручка, ₽</th>
+          <th>Закупочная стоимость, ₽</th>
+          <th>Рекламные расходы, ₽</th>
+          <th>Валовая прибыль, ₽</th>
+          <th>Маржинальность</th>
+          <th>Средний чек, ₽</th>
+          <th>CPO, ₽</th>
+          <th>ДРР</th>
+          <th>Прибыль после рекламы, ₽</th>
+          <th>ROMI</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="inputRows"></tbody>
+    </table>
+  </div>
+
+  <div class="message" id="errorMessage" role="alert"></div>
+
+  <div class="actions">
+    <button class="btn" id="addBtn" type="button">+ Добавить категорию</button>
+    <button class="btn btn-primary" id="calculateBtn" type="button">Рассчитать</button>
+    <button class="btn" id="csvBtn" type="button" disabled>Скачать CSV</button>
+  </div>
+
+  <div class="counter">
+    Добавлено категорий: <strong id="rowCount">5</strong> из 20.
+    Названия категорий можно менять.
+  </div>
+</section>
+
+<section class="section results-section">
+  <h2 class="section-title"><span>03</span> Сравнение товарных категорий</h2>
+  <p class="results-intro">
+    После расчёта категории располагаются по убыванию прибыли после рекламных расходов.
+  </p>
+
+  <div class="table-wrap">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Категория</th>
+          <th>Завершённые продажи</th>
+          <th>Выручка, ₽</th>
+          <th>Валовая прибыль, ₽</th>
+          <th>Маржинальность</th>
+          <th>Средний чек, ₽</th>
+          <th>CPO, ₽</th>
+          <th>Рекламные расходы, ₽</th>
+          <th>ДРР</th>
+          <th>Прибыль после рекламы, ₽</th>
+          <th>ROMI</th>
+          <th>Результат</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+        <tr>
+          <td colspan="12" class="empty">
+            Укажите период и заполните исходные данные, затем нажмите «Рассчитать».
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title"><span>04</span> Как рассчитываются показатели</h2>
+
+  <div class="formula-grid">
+    <div class="formula">
+      <strong>Валовая прибыль</strong><br>
+      Выручка − закупочная стоимость проданных товаров.
+    </div>
+    <div class="formula">
+      <strong>Маржинальность</strong><br>
+      Валовая прибыль / выручка × 100%.
+    </div>
+    <div class="formula">
+      <strong>Средний чек</strong><br>
+      Выручка / завершённые продажи.
+    </div>
+    <div class="formula">
+      <strong>CPO</strong><br>
+      Рекламные расходы / завершённые продажи.
+    </div>
+    <div class="formula">
+      <strong>ДРР</strong><br>
+      Рекламные расходы / выручка × 100%.
+    </div>
+    <div class="formula">
+      <strong>Прибыль после рекламы</strong><br>
+      Валовая прибыль − рекламные расходы.
+    </div>
+    <div class="formula">
+      <strong>ROMI</strong><br>
+      Прибыль после рекламы / рекламные расходы × 100%.
+    </div>
+  </div>
+
+  <div class="formula-note">
+    <strong>Обратите внимание:</strong> прибыль после рекламы — это не чистая прибыль
+    бизнеса. В расчёте не учтены аренда, зарплаты, налоги, логистика, упаковка,
+    эквайринг, комиссии и другие операционные расходы, если они не включены
+    в исходные затраты.
+  </div>
+
+  <p class="footer-note">
+    Калькулятор показывает финансовый результат товарных категорий за выбранный период.
+    Он помогает сравнить их текущую эффективность, но сам по себе не определяет,
+    какую категорию следует масштабировать. Для этого дополнительно оценивают объём
+    доступного спроса, конкуренцию, возможности поставок и изменение стоимости
+    привлечения заказов при увеличении рекламного бюджета.
+  </p>
+</section>
+
 </div>
 
 <script>
-let rows = 0;
+const MAX_ROWS = 20;
+const START_ROWS = 5;
 
-function addRow() {
-  if (rows >= 20) return;
-  rows++;
-  let table = document.getElementById('table');
-  let row = table.insertRow(-1);
-  row.innerHTML = `
-  <td><input type="text" placeholder="Название категории"></td>
-  <td><input type="number" class="sales"></td>
-  <td><input type="number" class="revenue"></td>
-  <td><input type="number" class="cost"></td>
-  <td><input type="number" class="ads"></td>
-  <td class="gross">—</td>
-  <td class="margin">—</td>
-  <td class="check">—</td>
-  <td class="cpo">—</td>
-  <td class="dar">—</td>
-  <td class="profit">—</td>
-  <td class="romi">—</td>
-  <td><button onclick="this.closest('tr').remove()">Удалить</button></td>
-  `;
+const inputRows = document.getElementById("inputRows");
+const resultsBody = document.getElementById("resultsBody");
+const addBtn = document.getElementById("addBtn");
+const calculateBtn = document.getElementById("calculateBtn");
+const csvBtn = document.getElementById("csvBtn");
+const rowCount = document.getElementById("rowCount");
+const errorMessage = document.getElementById("errorMessage");
+
+let calculatedData = [];
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
 }
 
-function addTotalRow() {
-  let table = document.getElementById('table');
-  let row = table.insertRow(-1);
-  row.className = 'total';
-  row.innerHTML = `
-  <td>Итого</td>
-  <td class="t-sales">—</td>
-  <td class="t-revenue">—</td>
-  <td class="t-cost">—</td>
-  <td class="t-ads">—</td>
-  <td class="t-gross">—</td>
-  <td class="t-margin">—</td>
-  <td class="t-check">—</td>
-  <td class="t-cpo">—</td>
-  <td class="t-dar">—</td>
-  <td class="t-profit">—</td>
-  <td class="t-romi">—</td>
-  <td></td>
+function createRow() {
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>
+      <input type="text" class="category"
+        placeholder="Например, Фильтры" aria-label="Название категории">
+    </td>
+    <td>
+      <input type="number" class="sales" min="0" step="1"
+        placeholder="0" aria-label="Завершённые продажи">
+    </td>
+    <td>
+      <input type="number" class="revenue" min="0" step="0.01"
+        placeholder="0" aria-label="Выручка">
+    </td>
+    <td>
+      <input type="number" class="cost" min="0" step="0.01"
+        placeholder="0" aria-label="Закупочная стоимость">
+    </td>
+    <td>
+      <input type="number" class="ad" min="0" step="0.01"
+        placeholder="0" aria-label="Рекламные расходы">
+    </td>
+    <td class="calc-cell gross">—</td>
+    <td class="calc-cell margin">—</td>
+    <td class="calc-cell average">—</td>
+    <td class="calc-cell cpo">—</td>
+    <td class="calc-cell drr">—</td>
+    <td class="calc-cell profit">—</td>
+    <td class="calc-cell romi">—</td>
+    <td><button type="button" class="delete-btn">Удалить</button></td>
   `;
+
+  tr.querySelector(".delete-btn").addEventListener("click", () => {
+    tr.remove();
+    updateCounter();
+    clearResults();
+  });
+
+  tr.querySelectorAll("input").forEach(input => {
+    input.addEventListener("input", clearResults);
+  });
+
+  inputRows.appendChild(tr);
+  updateCounter();
+}
+
+function updateCounter() {
+  const count = inputRows.querySelectorAll("tr").length;
+  rowCount.textContent = count;
+  addBtn.disabled = count >= MAX_ROWS;
+}
+
+function clearResults() {
+  calculatedData = [];
+  csvBtn.disabled = true;
+  resultsBody.innerHTML = `
+    <tr>
+      <td colspan="12" class="empty">
+        Данные изменились. Нажмите «Рассчитать», чтобы обновить результаты.
+      </td>
+    </tr>
+  `;
+
+  inputRows.querySelectorAll("tr").forEach(row => {
+    row.querySelectorAll(".calc-cell").forEach(cell => {
+      cell.textContent = "—";
+      cell.className = "calc-cell";
+    });
+  });
+}
+
+function showError(message) {
+  errorMessage.textContent = message;
+  errorMessage.style.display = "block";
+}
+
+function hideError() {
+  errorMessage.textContent = "";
+  errorMessage.style.display = "none";
+}
+
+function getNumber(row, selector) {
+  const field = row.querySelector(selector);
+  const value = field.value.trim();
+
+  if (value === "") return 0;
+
+  return Number(value);
+}
+
+function money(value) {
+  return new Intl.NumberFormat("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(value) + " ₽";
+}
+
+function percent(value) {
+  return new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: 2
+  }).format(value) + "%";
+}
+
+function validatePeriod() {
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  if (!from || !to) {
+    showError("Укажите дату начала и окончания периода анализа.");
+    return false;
+  }
+
+  if (from > to) {
+    showError("Дата начала периода не может быть позже даты окончания.");
+    return false;
+  }
+
+  return true;
 }
 
 function calculate() {
-  let table = document.getElementById('table');
-  let data = [];
+  hideError();
 
-  let totalSales = 0;
-  let totalRevenue = 0;
-  let totalCost = 0;
-  let totalAds = 0;
-  let totalGross = 0;
-  let totalProfit = 0;
+  if (!validatePeriod()) return;
 
-  for (let i = 1; i < table.rows.length; i++) {
-    let row = table.rows[i];
-    if (row.className === 'total') continue;
+  const rows = [...inputRows.querySelectorAll("tr")];
+  const data = [];
 
-    let name = row.cells[0].querySelector('input').value || 'Категория';
-    let sales = parseFloat(row.cells[1].querySelector('input').value) || 0;
-    let revenue = parseFloat(row.cells[2].querySelector('input').value) || 0;
-    let cost = parseFloat(row.cells[3].querySelector('input').value) || 0;
-    let ads = parseFloat(row.cells[4].querySelector('input').value) || 0;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
 
-    let gross = revenue - cost;
-    let margin = revenue ? gross / revenue * 100 : 0;
-    let check = sales ? revenue / sales : 0;
-    let cpo = sales ? ads / sales : 0;
-    let dar = revenue ? ads / revenue * 100 : 0;
-    let profit = gross - ads;
-    let romi = ads ? profit / ads * 100 : 0;
+    const category = row.querySelector(".category").value.trim();
+    const sales = getNumber(row, ".sales");
+    const revenue = getNumber(row, ".revenue");
+    const cost = getNumber(row, ".cost");
+    const ad = getNumber(row, ".ad");
 
-    row.cells[5].innerText = gross.toFixed(2);
-    row.cells[6].innerText = margin.toFixed(2) + '%';
-    row.cells[7].innerText = check.toFixed(2);
-    row.cells[8].innerText = cpo.toFixed(2);
-    row.cells[9].innerText = dar.toFixed(2) + '%';
-    row.cells[10].innerText = profit.toFixed(2);
-    row.cells[11].innerText = romi.toFixed(2) + '%';
+    const values = [sales, revenue, cost, ad];
 
-    totalSales += sales;
-    totalRevenue += revenue;
-    totalCost += cost;
-    totalAds += ads;
-    totalGross += gross;
-    totalProfit += profit;
-
-    data.push({name, profit, sales, revenue, cost, ads, gross, margin, check, cpo, dar, romi});
-  }
-
-  let totalMargin = totalRevenue ? totalGross / totalRevenue * 100 : 0;
-  let totalCheck = totalSales ? totalRevenue / totalSales : 0;
-  let totalCPO = totalSales ? totalAds / totalSales : 0;
-  let totalDAR = totalRevenue ? totalAds / totalRevenue * 100 : 0;
-  let totalROMI = totalAds ? totalProfit / totalAds * 100 : 0;
-
-  let totalRow = document.querySelector('.total');
-  if (totalRow) {
-    totalRow.cells[1].innerText = totalSales;
-    totalRow.cells[2].innerText = totalRevenue.toFixed(2);
-    totalRow.cells[3].innerText = totalCost.toFixed(2);
-    totalRow.cells[4].innerText = totalAds.toFixed(2);
-    totalRow.cells[5].innerText = totalGross.toFixed(2);
-    totalRow.cells[6].innerText = totalMargin.toFixed(2) + '%';
-    totalRow.cells[7].innerText = totalCheck.toFixed(2);
-    totalRow.cells[8].innerText = totalCPO.toFixed(2);
-    totalRow.cells[9].innerText = totalDAR.toFixed(2) + '%';
-    totalRow.cells[10].innerText = totalProfit.toFixed(2);
-    totalRow.cells[11].innerText = totalROMI.toFixed(2) + '%';
-  }
-
-  data.sort((a,b) => b.profit - a.profit);
-
-  for (let i = 1; i < table.rows.length; i++) {
-    let row = table.rows[i];
-    if (row.className === 'total') continue;
-    let name = row.cells[0].querySelector('input').value || 'Категория';
-    let found = data.find(d => d.name === name);
-    if (found) {
-      row.parentNode.appendChild(row);
+    if (values.some(value => !Number.isFinite(value) || value < 0)) {
+      showError("Строка " + (i + 1) +
+        ": все числовые значения должны быть неотрицательными числами.");
+      return;
     }
+
+    if (!Number.isInteger(sales)) {
+      showError("Строка " + (i + 1) +
+        ": количество завершённых продаж должно быть целым числом.");
+      return;
+    }
+
+    const hasValues = values.some(value => value !== 0);
+
+    if (!category && (hasValues || category === "")) {
+      if (hasValues) {
+        showError("Строка " + (i + 1) +
+          ": укажите название товарной категории.");
+        return;
+      }
+      continue;
+    }
+
+    if (category && sales === 0 && revenue > 0) {
+      showError("Строка " + (i + 1) +
+        ": при наличии выручки укажите количество завершённых продаж.");
+      return;
+    }
+
+    if (category && sales > 0 && revenue <= 0) {
+      showError("Строка " + (i + 1) +
+        ": при наличии завершённых продаж выручка должна быть больше нуля.");
+      return;
+    }
+
+    if (!category) continue;
+
+    const gross = revenue - cost;
+    const margin = revenue > 0 ? gross / revenue * 100 : null;
+    const average = sales > 0 ? revenue / sales : null;
+    const cpo = sales > 0 ? ad / sales : null;
+    const drr = revenue > 0 ? ad / revenue * 100 : null;
+    const profit = gross - ad;
+    const romi = ad > 0 ? profit / ad * 100 : null;
+
+    data.push({
+      category, sales, revenue, cost, ad,
+      gross, margin, average, cpo, drr, profit, romi,
+      originalRow: row
+    });
   }
+
+  if (data.length === 0) {
+    showError("Заполните хотя бы одну товарную категорию.");
+    return;
+  }
+
+  data.sort((a, b) => b.profit - a.profit);
+  calculatedData = data;
+
+  renderResults(data);
+  renderInputCalculations(data);
+  csvBtn.disabled = false;
+}
+
+function renderInputCalculations(data) {
+  data.forEach(item => {
+    const row = item.originalRow;
+
+    row.querySelector(".gross").textContent = money(item.gross);
+    row.querySelector(".margin").textContent =
+      item.margin === null ? "—" : percent(item.margin);
+    row.querySelector(".average").textContent =
+      item.average === null ? "—" : money(item.average);
+    row.querySelector(".cpo").textContent =
+      item.cpo === null ? "—" : money(item.cpo);
+    row.querySelector(".drr").textContent =
+      item.drr === null ? "—" : percent(item.drr);
+
+    const profitCell = row.querySelector(".profit");
+    profitCell.textContent = money(item.profit);
+    profitCell.classList.add(
+      item.profit >= 0 ? "profit-positive" : "profit-negative"
+    );
+
+    row.querySelector(".romi").textContent =
+      item.romi === null ? "—" : percent(item.romi);
+  });
+}
+
+function renderResults(data) {
+  resultsBody.innerHTML = data.map(item => {
+    let status;
+    let statusClass;
+
+    if (item.ad === 0) {
+      status = "Рекламные расходы не указаны";
+      statusClass = "status-neutral";
+    } else if (item.profit >= 0) {
+      status = "Реклама окупилась по валовой прибыли";
+      statusClass = "status-ok";
+    } else {
+      status = "Реклама не окупилась по валовой прибыли";
+      statusClass = "status-bad";
+    }
+
+    return `
+      <tr>
+        <td><strong>${escapeHTML(item.category)}</strong></td>
+        <td>${item.sales}</td>
+        <td>${money(item.revenue)}</td>
+        <td>${money(item.gross)}</td>
+        <td>${item.margin === null ? "—" : percent(item.margin)}</td>
+        <td>${item.average === null ? "—" : money(item.average)}</td>
+        <td>${item.cpo === null ? "—" : money(item.cpo)}</td>
+        <td>${money(item.ad)}</td>
+        <td>${item.drr === null ? "—" : percent(item.drr)}</td>
+        <td class="${item.profit >= 0 ? "profit-positive" : "profit-negative"}">
+          ${money(item.profit)}
+        </td>
+        <td>${item.romi === null ? "—" : percent(item.romi)}</td>
+        <td class="status ${statusClass}">${status}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function downloadCSV() {
-  let csv = 'Категория;Продажи;Выручка;Закупка;Реклама;Валовая прибыль;Маржинальность;Средний чек;CPO;ДРР;Прибыль после рекламы;ROMI\n';
-  let table = document.getElementById('table');
+  if (!calculatedData.length) return;
 
-  for (let i = 1; i < table.rows.length; i++) {
-    let row = table.rows[i];
-    let values = [];
-    for (let j = 0; j < row.cells.length - 1; j++) {
-      let cell = row.cells[j];
-      values.push(cell.querySelector('input') ? cell.querySelector('input').value : cell.innerText);
-    }
-    csv += values.join(';') + '\n';
-  }
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
 
-  let blob = new Blob([csv], {type:'text/csv'});
-  let link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'categories.csv';
+  const header = [
+    "Период с",
+    "Период по",
+    "Категория",
+    "Завершённые продажи",
+    "Выручка",
+    "Закупочная стоимость",
+    "Рекламные расходы",
+    "Валовая прибыль",
+    "Маржинальность, %",
+    "Средний чек",
+    "CPO",
+    "ДРР, %",
+    "Прибыль после рекламы",
+    "ROMI, %"
+  ];
+
+  const rows = calculatedData.map(item => [
+    from,
+    to,
+    item.category,
+    item.sales,
+    item.revenue,
+    item.cost,
+    item.ad,
+    item.gross,
+    item.margin === null ? "" : item.margin,
+    item.average === null ? "" : item.average,
+    item.cpo === null ? "" : item.cpo,
+    item.drr === null ? "" : item.drr,
+    item.profit,
+    item.romi === null ? "" : item.romi
+  ]);
+
+  const escapeCSV = value =>
+    '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+  const csv = "\uFEFF" +
+    [header, ...rows].map(row => row.map(escapeCSV).join(";")).join("\r\n");
+
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "category-ad-performance-" + from + "-" + to + ".csv";
+
+  document.body.appendChild(link);
   link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
 }
 
-addRow();
-addRow();
-addRow();
-addRow();
-addRow();
+addBtn.addEventListener("click", () => {
+  const count = inputRows.querySelectorAll("tr").length;
+
+  if (count >= MAX_ROWS) return;
+
+  createRow();
+  clearResults();
+});
+
+calculateBtn.addEventListener("click", calculate);
+csvBtn.addEventListener("click", downloadCSV);
+
+document.getElementById("dateFrom").addEventListener("change", clearResults);
+document.getElementById("dateTo").addEventListener("change", clearResults);
+
+for (let i = 0; i < START_ROWS; i++) {
+  createRow();
+}
 </script>
 </body>
 </html>
