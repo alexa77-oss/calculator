@@ -206,10 +206,10 @@
   const MAX_CATS = 20;
   const ROW_KEYS = ["orders","revenue","cost","ads","gross","margin","avgcheck","cpo","drr","profit","romi","delete"];
   const INPUT_ROWS = ["orders","revenue","cost","ads"];
+  const CALC_KEYS = ["gross","margin","avgcheck","cpo","drr","profit","romi"];
 
   const table = document.getElementById("calcTable");
   const headRow = document.getElementById("headRow");
-  const btnAdd = document.getElementById("btnAdd"); // создаётся динамически
   const btnCalc = document.getElementById("btnCalc");
   const btnCsv = document.getElementById("btnCsv");
   const btnSortApply = document.getElementById("btnSortApply");
@@ -224,8 +224,8 @@
 
   let categories = [];
   let catIdSeq = 0;
-  let orderIds = [];       // текущий порядок отображения колонок
-  let calcMap = {};        // id -> рассчитанные значения (всегда актуальные)
+  let orderIds = [];
+  let calcMap = {};
 
   function addCategory(name){
     if (categories.length >= MAX_CATS) return null;
@@ -256,7 +256,6 @@
     return r;
   }
 
-  // Пересчёт всех категорий — вызывается при любом изменении и при старте
   function recalcAll(){
     calcMap = {};
     categories.forEach(c => { calcMap[c.id] = calcCategory(c); });
@@ -277,14 +276,17 @@
     return "";
   }
 
-  // ---------- рендер ----------
+  function displayName(c){
+    if (c.name && c.name.trim()) return c.name.trim();
+    const idx = categories.findIndex(x => x.id === c.id);
+    return "Категория " + (idx + 1);
+  }
+
   function render(){
-    // порядок: orderIds, но фильтр по прибыльности
     let visible = orderIds.slice();
     if (filterSelect.value === "profit") visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit>0; });
     if (filterSelect.value === "loss")   visible = visible.filter(id => { const r=calcMap[id]; return r && r.profit!==null && r.profit<0; });
 
-    // шапка
     headRow.querySelectorAll("th.cat-col, th.plus-col").forEach(el => el.remove());
     const plusTh = document.createElement("th");
     plusTh.className = "plus-col";
@@ -308,13 +310,16 @@
       inp.type = "text";
       inp.value = c.name;
       inp.placeholder = "Название категории";
-      inp.addEventListener("input", e => { c.name = e.target.value; renderSummary(visible); });
+      inp.dataset.cat = id;
+      inp.addEventListener("input", e => {
+        c.name = e.target.value;
+        renderSummary(visible);
+      });
       th.appendChild(inp);
       frag.appendChild(th);
     });
     headRow.insertBefore(frag, plusTh);
 
-    // тело
     ROW_KEYS.forEach(rowKey => {
       const tr = table.querySelector('tr[data-row="' + rowKey + '"]');
       tr.querySelectorAll("td:not(.rowhead)").forEach(td => td.remove());
@@ -332,8 +337,8 @@
           inp.value = c[rowKey] === "" ? "" : c[rowKey];
           inp.addEventListener("input", e => {
             c[rowKey] = e.target.value;
-            recalcAll();          // сразу пересчитываем все
-            updateCalcCells(visible); // обновляем только расчётные ячейки (без перестройки инпутов)
+            recalcAll();
+            updateCalcCells(visible);
             renderSummary(visible);
           });
           td.appendChild(inp);
@@ -368,12 +373,11 @@
     renderSummary(visible);
   }
 
-  // обновить только расчётные ячейки (быстро, без перестройки DOM-инпутов)
   function updateCalcCells(visible){
     visible.forEach(id => {
       const r = calcMap[id];
       if (!r) return;
-      ["gross","margin","avgcheck","cpo","drr","profit","romi"].forEach(key => {
+      CALC_KEYS.forEach(key => {
         const td = table.querySelector('td[data-cat="'+id+'"][data-calc="'+key+'"]');
         if (!td) return;
         const val = r[key];
@@ -403,9 +407,9 @@
     function best(key){
       let best=null;
       rows.forEach(x=>{ const v=x.r[key]; if(v===null||isNaN(v))return; if(!best||v>best.v)best={v,c:x.c}; });
-      return best ? (best.c.name || "Без названия") : "—";
+      return best ? displayName(best.c) : "—";
     }
-    const losing = rows.filter(x => x.r.profit!==null && x.r.profit<0).map(x => x.c.name || "Без названия");
+    const losing = rows.filter(x => x.r.profit!==null && x.r.profit<0).map(x => displayName(x.c));
     let html = "";
     html += '<div class="item"><span class="label">Лучшая по прибыли после рекламы:</span>' + esc(best("profit")) + '</div>';
     html += '<div class="item"><span class="label">Лучшая по ROMI:</span>' + esc(best("romi")) + '</div>';
@@ -416,7 +420,6 @@
 
   function esc(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
-  // ---------- действия ----------
   function onAdd(){
     if (categories.length >= MAX_CATS) return;
     addCategory("");
@@ -479,7 +482,6 @@
     lines.push("Период анализа:;" + fmtDate(dateFrom.value) + ";" + fmtDate(dateTo.value));
     lines.push("Показатели — текущий срез за период. Не окончательные данные для масштабирования.");
     lines.push("");
-    // категории в строках (для Excel): строки = категории, столбцы = показатели
     const metrics = [
       ["orders","Количество оплаченных заказов"],
       ["revenue","Выручка, ₽"],
@@ -496,7 +498,7 @@
     lines.push(["Категория"].concat(metrics.map(m => m[1])).map(csvCell).join(sep));
     categories.forEach(c => {
       const r = calcMap[c.id] || calcCategory(c);
-      const row = [c.name || "Без названия"];
+      const row = [displayName(c)];
       metrics.forEach(([key]) => {
         let v;
         if (INPUT_ROWS.includes(key)) v = c[key];
@@ -525,7 +527,6 @@
     return s;
   }
 
-  // ---------- привязки ----------
   btnCalc.addEventListener("click", doCalculate);
   btnCsv.addEventListener("click", toCsv);
   btnSortApply.addEventListener("click", applySort);
@@ -533,11 +534,9 @@
   dateFrom.addEventListener("change", () => { validateDates(); render(); });
   dateTo.addEventListener("change", () => { validateDates(); render(); });
 
-  // старт: одна категория, всё считается сразу
   addCategory("");
   recalcAll();
   render();
-
 })();
 </script>
 </body>
