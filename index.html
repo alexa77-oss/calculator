@@ -1,0 +1,81 @@
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Калькулятор эффективности товарных категорий</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px}
+.wrap{max-width:1150px;margin:0 auto;background:#fff;padding:24px;border-radius:12px}
+h1{font-size:22px;margin:0 0 6px}
+p.sub{color:#555;margin:0 0 18px}
+.period{display:flex;gap:12px;margin-bottom:18px}
+.period input{padding:8px;border:1px solid #ccc;border-radius:6px}
+.card{border:1px solid #e2e2e2;border-radius:10px;padding:16px;margin-bottom:14px;background:#fafafa}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+input{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}
+label{font-size:12px;color:#444;display:block;margin-bottom:4px}
+button{margin-top:10px;padding:8px 14px;border:0;border-radius:6px;background:#2e7d32;color:#fff;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:18px}
+th,td{border-bottom:1px solid #e5e5e5;padding:8px;text-align:right;font-size:13px}
+th:first-child,td:first-child{text-align:left}
+.ok{color:#2e7d32;font-weight:600}
+.bad{color:#c62828;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Калькулятор эффективности товарных категорий</h1>
+<p class="sub">Введите данные по категориям за выбранный период. Калькулятор считает валовую прибыль, маржинальность, CPO, ДРР, прибыль после рекламы и ROMI.</p>
+<div class="period">
+<div><label>Начало периода анализа</label><input type="date" id="start"></div>
+<div><label>Окончание периода анализа</label><input type="date" id="end"></div>
+</div>
+<div class="card">
+<div class="grid">
+<div><label>Товарная категория</label><input id="cat"></div>
+<div><label>Оплаченные заказы</label><input id="orders" type="number"></div>
+<div><label>Выручка, ₽</label><input id="revenue" type="number"></div>
+<div><label>Закупочная стоимость товаров, ₽</label><input id="cost" type="number"></div>
+<div><label>Расходы на рекламу, ₽</label><input id="ads" type="number"></div>
+</div>
+<button onclick="addRow()">Добавить категорию</button>
+</div>
+<table>
+<thead><tr>
+<th>Категория</th><th>Оплаченные заказы</th><th>Выручка</th><th>Закупочная стоимость товаров</th><th>Расходы на рекламу</th><th>Валовая прибыль</th><th>Маржинальность</th><th>CPO</th><th>ДРР</th><th>Прибыль после рекламы</th><th>ROMI</th><th>Результат</th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<script>
+let rows=[];
+function addRow(){
+const cat=document.getElementById('cat').value;
+const orders=+document.getElementById('orders').value;
+const revenue=+document.getElementById('revenue').value;
+const cost=+document.getElementById('cost').value;
+const ads=+document.getElementById('ads').value;
+if(!cat||!orders||!revenue||!cost||!ads)return;
+const gross=revenue-cost;
+const margin=gross/revenue*100;
+const cpo=ads/orders;
+const drr=ads/revenue*100;
+const profitAfterAds=gross-ads;
+const romi=profitAfterAds/ads*100;
+const result=profitAfterAds>0?'Окупилась':'Не окупилась';
+rows.push({cat,orders,revenue,cost,ads,gross,margin,cpo,drr,profitAfterAds,romi,result});
+rows.sort((a,b)=>b.profitAfterAds-a.profitAfterAds);
+render();
+}
+function render(){
+const tbody=document.getElementById('tbody');
+tbody.innerHTML='';
+rows.forEach(r=>{
+tbody.innerHTML+=`<tr><td>${r.cat}</td><td>${r.orders}</td><td>${r.revenue.toLocaleString('ru-RU')} ₽</td><td>${r.cost.toLocaleString('ru-RU')} ₽</td><td>${r.ads.toLocaleString('ru-RU')} ₽</td><td>${r.gross.toLocaleString('ru-RU')} ₽</td><td>${r.margin.toFixed(1)}%</td><td>${r.cpo.toFixed(0)} ₽</td><td>${r.drr.toFixed(1)}%</td><td>${r.profitAfterAds.toLocaleString('ru-RU')} ₽</td><td>${r.romi.toFixed(0)}%</td><td class="${r.profitAfterAds>0?'ok':'bad'}">${r.result}</td></tr>`;
+});
+}
+</script>
+</body>
+</html>
