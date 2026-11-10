@@ -252,33 +252,39 @@
   var totalsEl = document.getElementById("totals");
   var recsWrap = document.getElementById("recsWrap");
 
-  var categories = [];
+  // ЕДИНОЕ состояние
+  var categories = [];    // {id, name, orders:number|NaN, revenue:number|NaN, cost:number|NaN, ads:number|NaN}
   var catIdSeq = 0;
-  var orderIds = [];
-  var inputOrder = [];
+  var orderIds = [];      // порядок отображения
+  var inputOrder = [];    // исходный порядок ввода
   var calculated = false;
-  var calcMap = {}; // единый источник данных
+  var calcMap = {};       // id -> {gross, margin, avgcheck, cpo, drr, profit, romi}
+
+  // ЕДИНОЕ преобразование: пусто -> NaN, число -> number
+  function toNum(v){
+    if (v === "" || v === null || v === undefined) return NaN;
+    var s = String(v).replace(",", ".").trim();
+    if (s === "") return NaN;
+    var n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  function money(v){ return v.toFixed(2).replace(".", ","); }
+  function pct(v){ return v.toFixed(1).replace(".", ","); }
 
   function addCategory(name){
     if (categories.length >= MAX_CATS) return null;
-    var c = {id: ++catIdSeq, name: name || "", orders:"", revenue:"", cost:"", ads:""};
+    var c = {id: ++catIdSeq, name: name || "", orders:NaN, revenue:NaN, cost:NaN, ads:NaN};
     categories.push(c);
     orderIds.push(c.id);
     inputOrder.push(c.id);
     return c;
   }
 
-  function num(v){
-    if (v === "" || v === null || v === undefined) return NaN;
-    var n = Number(String(v).replace(",", ".").trim());
-    return isFinite(n) ? n : NaN;
-  }
-  function money(v){ return v.toFixed(2).replace(".", ","); }
-  function pct(v){ return v.toFixed(1).replace(".", ","); }
-
-  function calcCategory(c){
-    var orders = num(c.orders), revenue = num(c.revenue), cost = num(c.cost), ads = num(c.ads);
+  // ЕДИНАЯ функция расчёта одной категории
+  function calcOne(c){
     var r = {gross:null, margin:null, avgcheck:null, cpo:null, drr:null, profit:null, romi:null};
+    var revenue = c.revenue, cost = c.cost, ads = c.ads, orders = c.orders;
     if (!isNaN(revenue) && !isNaN(cost)) r.gross = revenue - cost;
     if (r.gross !== null && !isNaN(revenue) && revenue !== 0) r.margin = r.gross / revenue * 100;
     if (!isNaN(orders) && orders !== 0 && !isNaN(revenue)) r.avgcheck = revenue / orders;
@@ -289,13 +295,16 @@
     return r;
   }
 
+  // ЕДИНЫЙ пересчёт всех категорий в один calcMap
   function recalcAll(){
     calcMap = {};
-    categories.forEach(function(c){ calcMap[c.id] = calcCategory(c); });
+    for (var i=0;i<categories.length;i++){
+      calcMap[categories[i].id] = calcOne(categories[i]);
+    }
   }
 
   function hasEnoughData(c){
-    return !isNaN(num(c.revenue)) && !isNaN(num(c.cost)) && !isNaN(num(c.ads));
+    return !isNaN(c.revenue) && !isNaN(c.cost) && !isNaN(c.ads);
   }
 
   function formatVal(rowKey, val){
@@ -319,10 +328,7 @@
     return "Категория " + (idx + 1);
   }
 
-  // Простая фиксированная логика статусов:
-  // 1) валовая прибыль < 0  -> "red" (убыток до рекламы)
-  // 2) прибыль после рекламы < 0 -> "orange" (убыток после рекламы)
-  // 3) иначе -> "green" (прибыльно)
+  // Статусы: убыток до рекламы / убыток после рекламы / прибыльно
   function getStatus(c, r){
     if (!calculated || !hasEnoughData(c)) return null;
     if (r.gross !== null && r.gross < 0) return "red";
@@ -345,8 +351,7 @@
 
   function renderSummary(){
     var rows = categories.map(function(c){
-      var r = calcMap[c.id] || calcCategory(c);
-      return {c:c, r:r, st:getStatus(c, r)};
+      return {c:c, r:calcMap[c.id] || calcOne(c), st:getStatus(c, calcMap[c.id] || calcOne(c))};
     });
     if (!rows.length) {
       summaryEl.innerHTML = '<div class="item"><span class="label">Нет категорий.</span></div>';
@@ -378,9 +383,8 @@
     rows.forEach(function(x){
       if (x.st === null) return;
       var c = x.c, r = x.r;
-      var rev = num(c.revenue), ads = num(c.ads);
-      if (!isNaN(rev)) { tRevenue += rev; hasRev=true; }
-      if (!isNaN(ads)) { tAds += ads; hasAds=true; }
+      if (!isNaN(c.revenue)) { tRevenue += c.revenue; hasRev=true; }
+      if (!isNaN(c.ads)) { tAds += c.ads; hasAds=true; }
       if (r.gross !== null) { tGross += r.gross; hasGross=true; }
       if (r.profit !== null) { tProfit += r.profit; hasProfit=true; }
     });
@@ -416,6 +420,7 @@
 
   function esc(s){ return String(s).replace(/[&<>"']/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]; }); }
 
+  // Полная перерисовка таблицы (только когда меняется структура/порядок)
   function render(){
     recalcAll();
 
@@ -467,9 +472,18 @@
           inp.type = "number";
           inp.step = rowKey === "orders" ? "1" : "0.01";
           inp.min = "0";
-          inp.value = c[rowKey] === "" ? "" : c[rowKey];
-          inp.addEventListener("input", function(e){ c[rowKey] = e.target.value; onInputChange(); });
-          inp.addEventListener("change", function(e){ c[rowKey] = e.target.value; onInputChange(); });
+          inp.value = isNaN(c[rowKey]) ? "" : c[rowKey];
+          inp.dataset.inputCat = id;
+          inp.dataset.inputKey = rowKey;
+          inp.addEventListener("input", function(e){
+            // СРАЗУ пишем ЧИСЛО в состояние
+            c[rowKey] = toNum(e.target.value);
+            onInputChange();
+          });
+          inp.addEventListener("change", function(e){
+            c[rowKey] = toNum(e.target.value);
+            onInputChange();
+          });
           td.appendChild(inp);
         } else if (rowKey === "delete") {
           td.className = "cell-input";
@@ -478,15 +492,15 @@
           b.addEventListener("click", function(){ removeCategory(id); });
           td.appendChild(b);
         } else if (rowKey === "status") {
-          var r2 = calcMap[id] || calcCategory(c);
+          var r2 = calcMap[id];
           var st = getStatus(c, r2);
           td.className = "calc";
           td.style.textAlign = "center";
           td.dataset.statusCat = id;
           td.innerHTML = st ? '<span class="status-badge st-'+st+'">'+STATUS_LABEL[st]+'</span>' : '<span style="color:var(--muted)">—</span>';
         } else {
-          var r = calcMap[id] || calcCategory(c);
-          var val = r[rowKey];
+          var r = calcMap[id];
+          var val = r ? r[rowKey] : null;
           td.dataset.calc = rowKey;
           td.dataset.cat = id;
           td.className = "calc " + signClass(rowKey, val);
@@ -509,7 +523,7 @@
     renderSummary();
   }
 
-  // Ввод цифр: обновляем только расчётные ячейки, статус и сводку (курсор не сбивается)
+  // Ввод: обновляем ТОЛЬКО расчётные ячейки и статус/сводку, НЕ перерисовываем инпуты
   function onInputChange(){
     calculated = true;
     recalcAll();
@@ -547,6 +561,7 @@
     categories = categories.filter(function(c){ return c.id !== id; });
     orderIds = orderIds.filter(function(x){ return x !== id; });
     inputOrder = inputOrder.filter(function(x){ return x !== id; });
+    delete calcMap[id];
     render();
   }
 
@@ -578,10 +593,10 @@
   function applySort(){
     var key = sortSelect.value;
     var asc = ascChk.checked;
+    recalcAll(); // свежие данные перед сортировкой
     var arr = categories.slice();
     arr.sort(function(x, y){
-      var rx = calcMap[x.id] || calcCategory(x);
-      var ry = calcMap[y.id] || calcCategory(y);
+      var rx = calcMap[x.id], ry = calcMap[y.id];
       var vx = rx[key], vy = ry[key];
       var nx = (vx === null || isNaN(vx)), ny = (vy === null || isNaN(vy));
       if (nx && ny) return 0;
@@ -599,6 +614,7 @@
   }
 
   function toCsv(){
+    recalcAll(); // гарантируем актуальные данные
     var sep = ";";
     var lines = [];
     lines.push("Период анализа:;" + fmtDate(dateFrom.value) + ";" + fmtDate(dateTo.value));
@@ -619,13 +635,13 @@
     ];
     lines.push(["Категория"].concat(metrics.map(function(m){ return m[1]; })).concat(["Статус","Рекомендация"]).map(csvCell).join(sep));
     categories.forEach(function(c){
-      var r = calcMap[c.id] || calcCategory(c);
+      var r = calcMap[c.id];
       var st = getStatus(c, r);
       var row = [displayName(c)];
       metrics.forEach(function(m){
         var key = m[0];
         var v;
-        if (INPUT_ROWS.indexOf(key) !== -1) v = c[key];
+        if (INPUT_ROWS.indexOf(key) !== -1) v = isNaN(c[key]) ? "" : c[key];
         else {
           v = r[key];
           if (v !== null && v !== undefined && !isNaN(v)) {
