@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор сравнения категорий до запуска рекламы</title>
+<style>
+  :root{
+    --blue-dark: #0E7490;
+    --blue: #06B6D4;
+    --blue-soft: #E0F2FE;
+    --text: #111111;
+    --muted: #475569;
+    --bg: #F8FAFC;
+    --border: rgba(14,116,144,0.22);
+    --teal-cell: rgba(6,182,212,0.12);
+    --yellow-soft: rgba(234,179,8,0.12);
+    --yellow-text: #854D0E;
+    --red-soft: rgba(220,38,38,0.09);
+    --red-text: #991B1B;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; padding:24px 16px 60px; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px; line-height:1.45;}
+  .wrap{max-width:1320px; margin:0 auto;}
+
+  header.hero{position:relative; overflow:hidden; border:1px solid var(--border); border-radius:16px;
+    padding:24px 26px 20px; margin-bottom:20px;
+    background:linear-gradient(135deg, rgba(6,182,212,0.07), transparent 60%), #fff;}
+  header.hero::before{content:""; position:absolute; inset:-40% -10% auto auto; width:520px; height:520px;
+    pointer-events:none;
+    background-image:linear-gradient(rgba(14,116,144,0.22) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,116,144,0.22) 1px, transparent 1px);
+    background-size:26px 26px; transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);
+    opacity:.32;
+    mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
+    -webkit-mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);}
+  header.hero h1{margin:0 0 8px; font-size:22px; color:var(--text); position:relative;}
+  header.hero p{margin:0 0 6px; max-width:860px; color:var(--text); position:relative;}
+  .meta{font-size:12.5px; color:var(--muted); position:relative;}
+
+  section.card{border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;
+    margin-bottom:16px; background:#fff;}
+  section.card h2{margin:0 0 12px; font-size:15px; color:var(--text); font-weight:600;}
+
+  input[type="text"], input[type="number"]{
+    height:38px; padding:0 10px; font-size:14px; color:var(--text);
+    border:1px solid var(--border); border-radius:8px; background:#fff;
+    outline:none; font-family:inherit; width:100%;}
+  input[type="number"]{-moz-appearance:textfield; appearance:textfield;}
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  input:focus{border-color:rgba(14,116,144,0.55); box-shadow:0 0 0 3px rgba(6,182,212,0.12);}
+  input.invalid{border-color:rgba(220,38,38,0.6); box-shadow:0 0 0 3px rgba(220,38,38,0.10);}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; align-items:center;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    height:38px; padding:0 16px; font-size:13.5px; font-family:inherit;
+    border:1px solid rgba(14,116,144,0.45); border-radius:8px;
+    background:rgba(6,182,212,0.06); color:var(--text);
+    cursor:pointer; transition:background .15s, border-color .15s; white-space:nowrap;}
+  .btn:hover{background:rgba(6,182,212,0.12); border-color:rgba(14,116,144,0.7);}
+  .btn.primary{background:rgba(6,182,212,0.14); border-color:var(--blue);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .hint{font-size:12.5px; color:var(--muted);}
+
+  .table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius); background:#fff;}
+  table.calc{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%;}
+  table.calc th, table.calc td{
+    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:7px 9px; text-align:right; vertical-align:middle; height:40px;
+    font-variant-numeric:tabular-nums; white-space:nowrap;}
+  table.calc thead th{background:rgba(6,182,212,0.07); color:var(--text);
+    font-weight:600; font-size:12.5px; text-align:center;}
+  table.calc thead th.cat-col{padding:6px; min-width:160px; text-align:center; vertical-align:middle;}
+  table.calc thead th.cat-col input{height:30px; font-size:13px; text-align:center;}
+  table.calc thead th.plus-col{background:transparent; border-right:none; vertical-align:middle;
+    text-align:center; padding:6px;}
+  table.calc thead th.plus-col .btn{height:32px; padding:0 12px; border-style:dashed;}
+
+  table.calc th.rowhead, table.calc td.rowhead{
+    position:sticky; left:0; z-index:2; text-align:left;
+    min-width:245px; max-width:290px; white-space:normal; font-weight:500;
+    background:#fff; border-left:none; color:var(--text);}
+  table.calc thead th.rowhead{background:rgba(6,182,212,0.07); z-index:3;}
+  table.calc tbody tr:nth-child(even) td.rowhead{background:#fbfdfe;}
+  table.calc tbody tr.group td.rowhead{background:#eef8fb; color:var(--text); font-weight:600;}
+
+  td.cell-input{padding:4px 6px; text-align:center;}
+  td.cell-input input{height:30px; text-align:right; font-size:13px;}
+  td.calc{color:var(--text); font-size:13px; text-align:right;}
+  td.pos{background:var(--teal-cell); color:var(--text); font-weight:600;}
+  td.neg{background:var(--red-soft); color:var(--red-text); font-weight:600;}
+  td.dash{color:var(--muted); text-align:center;}
+
+  .del-btn{height:26px; width:28px; padding:0; font-size:13px; line-height:1;
+    border:1px solid var(--border); border-radius:6px; background:rgba(220,38,38,.04);
+    color:var(--red-text); cursor:pointer; font-family:inherit;}
+  .del-btn:hover{background:rgba(220,38,38,.10); border-color:rgba(220,38,38,.5);}
+
+  .status-badge{display:inline-block; padding:3px 9px; border-radius:999px;
+    font-size:11.5px; font-weight:600; white-space:nowrap;}
+  .st-teal{background:rgba(6,182,212,0.16); color:var(--text);}
+  .st-yellow{background:rgba(234,179,8,0.16); color:var(--yellow-text);}
+  .st-red{background:rgba(220,38,38,0.12); color:var(--red-text);}
+  .st-dash{background:rgba(100,116,139,0.10); color:var(--muted);}
+
+  .result-period{margin:10px 0 0; font-size:12.5px; color:var(--muted); display:none;}
+  .result-period.show{display:block;}
+
+  .compare-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px;}
+  .compare-row label{color:var(--text);}
+  .compare-row select{height:38px; padding:0 10px; font-size:13.5px; font-family:inherit;
+    border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text); outline:none;}
+  .compare-row select:focus{border-color:rgba(14,116,144,0.55);}
+
+  .summary{display:grid; gap:8px; font-size:13px; margin-bottom:14px;}
+  .summary .item{padding:9px 12px; border:1px solid var(--border); border-radius:8px;
+    background:rgba(6,182,212,0.05); color:var(--text);}
+  .summary .item.neg{background:var(--red-soft); border-color:rgba(220,38,38,.3); color:var(--red-text);}
+  .summary .label{font-size:12px; color:var(--muted); margin-right:6px;}
+
+  .totals{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px; margin-bottom:14px;}
+  .totals .t{padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:#fff;}
+  .totals .t .k{font-size:11.5px; color:var(--muted); margin-bottom:4px;}
+  .totals .t .v{font-size:14px; font-weight:600; color:var(--text);}
+  .totals .t .v.neg{color:var(--red-text);}
+  .totals .t .v.dash{color:var(--muted); font-weight:500;}
+
+  table.rec-table{width:100%; border-collapse:collapse; font-size:13px;}
+  table.rec-table th{background:rgba(6,182,212,0.07); color:var(--text);
+    font-size:12px; font-weight:600; padding:8px 10px; text-align:left; border:1px solid var(--border);}
+  table.rec-table td{padding:8px 10px; border:1px solid var(--border); text-align:left;
+    vertical-align:top; white-space:normal; color:var(--text);}
+  table.rec-table td.cat{font-weight:600; color:var(--text);}
+  table.rec-table td.dash{color:var(--muted);}
+
+  .formulas{font-size:13px; color:var(--text);}
+  .formulas ul{margin:0; padding-left:18px;}
+  .formulas li{margin-bottom:5px;}
+  .formulas .important{margin-top:12px; padding:11px 14px; border:1px solid var(--border);
+    border-left:4px solid var(--blue); border-radius:8px;
+    background:rgba(6,182,212,0.06); color:var(--text); font-size:13px;}
+
+  .footnote{margin-top:10px; font-size:12.5px; color:var(--muted);}
+  .footnote b{color:var(--text);}
+
+  details.extra{border:1px solid var(--border); border-radius:var(--radius);
+    background:#fff; margin-bottom:16px;}
+  details.extra > summary{cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600;
+    color:var(--text); list-style:none; display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+  details.extra > summary::-webkit-details-marker{display:none;}
+  details.extra > summary .arrow{display:inline-block; transition:transform .15s; font-size:12px;}
+  details.extra[open] > summary .arrow{transform:rotate(90deg);}
+  details.extra > summary .indicator{font-size:12px; font-weight:500; padding:3px 10px;
+    border-radius:999px; white-space:nowrap;}
+  .ind-neutral{background:rgba(100,116,139,0.10); color:var(--muted);}
+  .ind-active{background:rgba(6,182,212,0.14); color:var(--text);}
+  details.extra .extra-body{padding:0 18px 16px;}
+
+  @media (max-width:600px){
+    table.calc th.rowhead, table.calc td.rowhead{min-width:190px; max-width:220px; font-size:12.5px;}
+    header.hero h1{font-size:19px;}
+    .summary, .totals{font-size:12.5px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>Калькулятор сравнения категорий до запуска рекламы</h1>
+    <p>Для товаров и категорий, у которых ещё нет статистики продаж. Сравнивает плановую экономику: переменные расходы, маржу, маржинальность, CPO, ДРР, прибыль после рекламы и окупаемость рекламы — по одинаковым показателям.</p>
+    <p class="meta">Калькулятор сравнивает экономику при заданных допущениях. Он не подтверждает спрос и не определяет, какую категорию запускать.</p>
+  </header>
+
+  <section class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="btnCalc">Рассчитать</button>
+      <button class="btn" id="btnCsv">Скачать CSV</button>
+      <span class="hint">Расчёт обновляется автоматически при вводе. Кнопка «Рассчитать» — дополнительное действие. До 20 категорий. Пустые поля не участвуют в расчёте: пока не хватает обязательных данных, показатель отображается как «—». Если значение рассчитано и равно нулю, отображается 0.</span>
+    </div>
+
+    <div class="table-scroll">
+      <table class="calc" id="calcTable">
+        <thead>
+          <tr id="headRow">
+            <th class="rowhead">Показатель</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group"><td class="rowhead">Плановые вводные</td></tr>
+          <tr data-row="price"><td class="rowhead">Цена продажи за единицу, ₽</td></tr>
+          <tr data-row="purchase"><td class="rowhead">Закупочная цена за единицу, ₽</td></tr>
+          <tr data-row="delivery"><td class="rowhead">Доставка до склада за единицу, ₽</td></tr>
+          <tr data-row="packing"><td class="rowhead">Упаковка за единицу, ₽</td></tr>
+          <tr data-row="budget"><td class="rowhead">Планируемый рекламный бюджет, ₽</td></tr>
+          <tr data-row="sales"><td class="rowhead">Ожидаемое количество продаж, шт.</td></tr>
+
+          <tr class="group"><td class="rowhead">Расчётные показатели</td></tr>
+          <tr data-row="varCost"><td class="rowhead">Переменные расходы на единицу, ₽</td></tr>
+          <tr data-row="margin"><td class="rowhead">Маржа с одной продажи, ₽</td></tr>
+          <tr data-row="marginPct"><td class="rowhead">Маржинальность, %</td></tr>
+          <tr data-row="cpoPlan"><td class="rowhead">Планируемый CPO, ₽</td></tr>
+          <tr data-row="cpoAllowed"><td class="rowhead">Допустимый CPO, ₽</td></tr>
+          <tr data-row="revenue"><td class="rowhead">Планируемая выручка, ₽</td></tr>
+          <tr data-row="drr"><td class="rowhead">Планируемый ДРР, %</td></tr>
+          <tr data-row="profit"><td class="rowhead">Плановая прибыль после рекламы, ₽</td></tr>
+          <tr data-row="breakEven"><td class="rowhead">Продаж для окупаемости рекламы, шт.</td></tr>
+          <tr data-row="status"><td class="rowhead">Статус</td></tr>
+          <tr data-row="delete"><td class="rowhead">Удалить</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote"><b>*</b> Комиссия маркетплейса или канала указывается только при продаже через площадку или иной канал с комиссией.</p>
+    <p class="result-period" id="resultPeriod"></p>
+  </section>
+
+  <details class="extra" id="extraBlock">
+    <summary>
+      <span class="arrow">▶</span>
+      <span>Дополнительные расходы и условия</span>
+      <span class="indicator ind-neutral" id="extraIndicator">Расчёт без комиссии и прочих переменных расходов</span>
+    </summary>
+    <div class="extra-body">
+      <p class="hint" style="margin:0 0 10px;">Необязательно. Сворачивание блока не очищает введённые значения.</p>
+      <div class="table-scroll">
+        <table class="calc" id="extraTable">
+          <thead>
+            <tr id="extraHeadRow">
+              <th class="rowhead">Дополнительно</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-row="commission"><td class="rowhead">Комиссия маркетплейса/канала за единицу, ₽ *</td></tr>
+            <tr data-row="other"><td class="rowhead">Прочие переменные расходы за единицу, ₽</td></tr>
+            <tr data-row="minProfit"><td class="rowhead">Желаемая минимальная прибыль с продажи, ₽</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </details>
+
+  <section class="card">
+    <h2>Сравнение категорий</h2>
+
+    <div class="compare-row">
+      <label for="sortSelect" style="font-size:13px;">Сортировать по:</label>
+      <select id="sortSelect">
+        <option value="marginPct">Маржинальность, %</option>
+        <option value="margin">Маржа с одной продажи, ₽</option>
+        <option value="cpoAllowed">Допустимый CPO, ₽</option>
+        <option value="profit">Плановая прибыль после рекламы, ₽ (зависит от введённого количества продаж)</option>
+      </select>
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+        <input type="checkbox" id="ascChk" style="width:16px; height:16px;"> по возрастанию
+      </label>
+      <button class="btn" id="btnSortApply">Применить сортировку</button>
+      <button class="btn" id="btnResetOrder">Исходный порядок</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <h2 style="margin-top:6px; font-size:14px;">Итоги по всем категориям (по заданным допущениям)</h2>
+    <div class="totals" id="totals"></div>
+
+    <h2 style="margin-top:6px; font-size:14px;">Статусы и рекомендации по категориям</h2>
+    <div id="recsWrap" style="overflow-x:auto;"></div>
+
+    <p class="meta" style="margin-top:10px;">Калькулятор сравнивает плановую экономику при заданных допущениях. Высокая плановая прибыль не подтверждает спрос и не означает, что категорию нужно запускать. Для решения дополнительно оценивают спрос, конкуренцию, конверсию, возвраты и поставки.</p>
+  </section>
+
+  <section class="card formulas">
+    <h2>Как считаются показатели</h2>
+    <ul>
+      <li><b>Переменные расходы на единицу</b> = закупочная цена + доставка + упаковка + комиссия (если указана) + прочие переменные расходы (если указаны).</li>
+      <li><b>Маржа с одной продажи</b> = цена продажи − переменные расходы на единицу.</li>
+      <li><b>Маржинальность</b> = маржа с одной продажи / цена продажи × 100%.</li>
+      <li><b>Планируемый CPO</b> = рекламный бюджет / ожидаемое количество продаж.</li>
+      <li><b>Допустимый CPO</b>: если желаемая минимальная прибыль не задана — маржа с продажи (предельный CPO до безубыточности); если задана — маржа минус желаемая прибыль.</li>
+      <li><b>Планируемая выручка</b> = цена продажи × ожидаемое количество продаж.</li>
+      <li><b>Планируемый ДРР</b> = рекламный бюджет / планируемая выручка × 100%.</li>
+      <li><b>Плановая прибыль после рекламы</b> = маржа с одной продажи × ожидаемое количество продаж − рекламный бюджет. Зависит от введённого количества продаж.</li>
+      <li><b>Продаж для окупаемости рекламы</b> = рекламный бюджет / маржа с одной продажи (округляется вверх до целого).</li>
+    </ul>
+    <div class="important">Расчёт основан на планируемых показателях. Реальные спрос, конверсия, CPO и возвраты могут отличаться.</div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MAX_CATS = 20;
+  var INPUT_ROWS_MAIN = ["price","purchase","delivery","packing","budget","sales"];
+  var ROW_KEYS_MAIN = ["price","purchase","delivery","packing","budget","sales",
+                       "varCost","margin","marginPct","cpoPlan","cpoAllowed",
+                       "revenue","drr","profit","breakEven","status","delete"];
+  var ROW_KEYS_EXTRA = ["commission","other","minProfit"];
+  var CALC_KEYS = ["varCost","margin","marginPct","cpoPlan","cpoAllowed","revenue","drr","profit","breakEven"];
+
+  var table = document.getElementById("calcTable");
+  var headRow = document.getElementById("headRow");
+  var extraTable = document.getElementById("extraTable");
+  var extraHeadRow = document.getElementById("extraHeadRow");
+  var extraIndicator = document.getElementById("extraIndicator");
+  var btnCalc = document.getElementById("btnCalc");
+  var btnCsv = document.getElementById("btnCsv");
+  var btnSortApply = document.getElementById("btnSortApply");
+  var btnResetOrder = document.getElementById("btnResetOrder");
+  var sortSelect = document.getElementById("sortSelect");
+  var ascChk = document.getElementById("ascChk");
+  var summaryEl = document.getElementById("summary");
+  var totalsEl = document.getElementById("totals");
+  var recsWrap = document.getElementById("recsWrap");
+  var resultPeriod = document.getElementById("resultPeriod");
+
+  var categories = [];
+  var catIdSeq = 0;
+  var orderIds = [];
+  var inputOrder = [];
+  var calcMap = {};
+
+  function toNum(v){
+    if (v === "" || v === null || v === undefined) return NaN;
+    var s = String(v).replace(",", ".").trim();
+    if (s === "") return NaN;
+    var n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function money(v){ return v.toFixed(2).replace(".", ","); }
+  function pct(v){ return v.toFixed(1).replace(".", ","); }
+
+  function addCategory(name){
+    if (categories.length >= MAX_CATS) return null;
+    var c = {id: ++catIdSeq, name: name || "",
+      price:NaN, purchase:NaN, delivery:NaN, packing:NaN,
+      budget:NaN, sales:NaN,
+      commission:NaN, other:NaN, minProfit:NaN};
+    categories.push(c);
+    orderIds.push(c.id);
+    inputOrder.push(c.id);
+    return c;
+  }
+
+  function sumVarCost(c){
+    var parts = [c.purchase, c.delivery, c.packing, c.commission, c.other];
+    var sum = 0, any = false;
+    for (var i=0;i<parts.length;i++){
+      if (!isNaN(parts[i])) { sum += parts[i]; any = true; }
+    }
+    return any ? sum : NaN;
+  }
+
+  function calcOne(c){
+    var r = {varCost:NaN, margin:NaN, marginPct:NaN, cpoPlan:NaN, cpoAllowed:NaN,
+             revenue:NaN, drr:NaN, profit:NaN, breakEven:NaN, hasGoal:false, hasMargin:false};
+    var varCost = sumVarCost(c);
+    r.varCost = varCost;
+    if (!isNaN(c.price) && !isNaN(varCost)) { r.margin = c.price - varCost; r.hasMargin = true; }
+    if (r.hasMargin && !isNaN(c.price) && c.price !== 0) r.marginPct = r.margin / c.price * 100;
+    if (!isNaN(c.budget) && !isNaN(c.sales) && c.sales !== 0) r.cpoPlan = c.budget / c.sales;
+    r.hasGoal = !isNaN(c.minProfit);
+    if (r.hasMargin) {
+      if (r.hasGoal) r.cpoAllowed = r.margin - c.minProfit;
+      else r.cpoAllowed = r.margin;
+    }
+    if (!isNaN(c.price) && !isNaN(c.sales)) r.revenue = c.price * c.sales;
+    if (!isNaN(c.budget) && !isNaN(r.revenue) && r.revenue !== 0) r.drr = c.budget / r.revenue * 100;
+    if (r.hasMargin && !isNaN(c.sales) && !isNaN(c.budget)) r.profit = r.margin * c.sales - c.budget;
+    if (!isNaN(c.budget) && r.hasMargin && r.margin > 0) r.breakEven = Math.ceil(c.budget / r.margin);
+    if (!isNaN(c.budget) && c.budget === 0 && r.hasMargin && r.margin > 0) r.breakEven = 0;
+    return r;
+  }
+
+  function recalcAll(){
+    calcMap = {};
+    for (var i=0;i<categories.length;i++){
+      calcMap[categories[i].id] = calcOne(categories[i]);
+    }
+  }
+
+  function statusOf(c, r){
+    if (!r.hasMargin) return null;
+    if (r.margin <= 0) return "red";
+    if (isNaN(r.cpoPlan) || isNaN(r.cpoAllowed)) return null;
+    if (r.cpoPlan <= r.cpoAllowed) return r.hasGoal ? "teal" : "teal-noGoal";
+    return "yellow";
+  }
+
+  var STATUS_META = {
+    "teal": {cls:"st-teal", label:"Есть запас для рекламы",
+      rec:"Планируемый CPO укладывается в допустимый предел. Можно проводить тест рекламы."},
+    "teal-noGoal": {cls:"st-teal", label:"Есть запас для рекламы (цель по прибыли не задана)",
+      rec:"Планируемый CPO укладывается в предел до безубыточности. Цель по прибыли не задана — задайте желаемую минимальную прибыль, чтобы проверить её достижение."},
+    "yellow": {cls:"st-yellow", label:"Реклама съедает маржу",
+      rec:"Планируемый CPO выше допустимого. Пересмотрите цену, закупочную стоимость, переменные расходы или рекламную стратегию."},
+    "red": {cls:"st-red", label:"Товар убыточен до рекламы",
+      rec:"Товар не приносит маржи даже до рекламы. Проверьте закупочную цену, переменные расходы и цену продажи."},
+    "dash": {cls:"st-dash", label:"Недостаточно данных",
+      rec:"Заполните цену продажи, переменные расходы и рекламный бюджет, чтобы рассчитать экономику товара."}
+  };
+
+  function statusBasis(r, st){
+    if (st === null) return "Недостаточно данных: не заполнены обязательные поля.";
+    if (st === "red") return "Маржа с продажи " + money(r.margin) + " ₽ — меньше или равна нулю.";
+    if (st === "teal") return "Планируемый CPO " + money(r.cpoPlan) + " ₽ ≤ допустимого " + money(r.cpoAllowed) + " ₽ (с учётом желаемой прибыли).";
+    if (st === "teal-noGoal") return "Планируемый CPO " + money(r.cpoPlan) + " ₽ ≤ предельного " + money(r.cpoAllowed) + " ₽ до безубыточности. Цель по прибыли не задана.";
+    return "Планируемый CPO " + money(r.cpoPlan) + " ₽, допустимый — " + money(r.cpoAllowed) + " ₽: желаемая прибыль не достигается.";
+  }
+
+  function formatVal(rowKey, val, hasGoal){
+    if (val === null || val === undefined || isNaN(val)) return "—";
+    if (["varCost","margin","cpoPlan","revenue","profit"].indexOf(rowKey) !== -1) return money(val) + " ₽";
+    if (["marginPct","drr"].indexOf(rowKey) !== -1) return pct(val) + "%";
+    if (rowKey === "breakEven") return String(val) + " шт.";
+    if (rowKey === "cpoAllowed") {
+      return money(val) + " ₽ — " + (hasGoal ? "с учётом желаемой прибыли" : "до безубыточности, цель не задана");
+    }
+    return String(val);
+  }
+  function signClass(rowKey, val){
+    if (val === null || val === undefined || isNaN(val)) return "";
+    if (["margin","marginPct","profit"].indexOf(rowKey) !== -1) {
+      if (val > 0) return "pos";
+      if (val < 0) return "neg";
+    }
+    return "";
+  }
+
+  function displayName(c){
+    if (c.name && c.name.trim()) return c.name.trim();
+    var idx = categories.findIndex(function(x){ return x.id === c.id; });
+    return "Категория " + (idx + 1);
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]; }); }
+
+  function sanitizeInput(raw){
+    if (raw === "" || raw === null || raw === undefined) return NaN;
+    var s = String(raw).replace(",", ".").trim();
+    if (s === "") return NaN;
+    var n = Number(s);
+    if (!isFinite(n)) return NaN;
+    if (n < 0) return NaN;
+    return n;
+  }
+
+  function buildHead(targetHeadRow, visible, isExtra){
+    targetHeadRow.querySelectorAll("th.cat-col, th.plus-col").forEach(function(el){ el.remove(); });
+    var frag = document.createDocumentFragment();
+    visible.forEach(function(id){
+      var c = categories.find(function(x){ return x.id === id; });
+      if (!c) return;
+      var th = document.createElement("th");
+      th.className = "cat-col";
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = c.name;
+      inp.placeholder = "Название категории";
+      inp.dataset.cat = id;
+      inp.addEventListener("input", function(e){
+        c.name = e.target.value;
+        var otherInputs = document.querySelectorAll('input[data-cat="'+id+'"]');
+        for (var i=0;i<otherInputs.length;i++){
+          if (otherInputs[i] !== inp) otherInputs[i].value = e.target.value;
+        }
+        renderSummary();
+      });
+      th.appendChild(inp);
+      frag.appendChild(th);
+    });
+    if (!isExtra) {
+      var plusTh = document.createElement("th");
+      plusTh.className = "plus-col";
+      var addBtn = document.createElement("button");
+      addBtn.className = "btn";
+      addBtn.id = "btnAdd";
+      addBtn.title = categories.length >= MAX_CATS ? "Достигнут лимит 20 категорий" : "Добавить категорию";
+      addBtn.textContent = "+ Добавить категорию";
+      addBtn.disabled = categories.length >= MAX_CATS;
+      addBtn.addEventListener("click", onAdd);
+      plusTh.appendChild(addBtn);
+      frag.appendChild(plusTh);
+    } else {
+      var stub = document.createElement("th");
+      stub.className = "plus-col";
+      frag.appendChild(stub);
+    }
+    targetHeadRow.appendChild(frag);
+  }
+
+  function makeInput(c, key, step, onChange){
+    var inp = document.createElement("input");
+    inp.type = "number";
+    inp.step = step;
+    inp.min = "0";
+    inp.value = isNaN(c[key]) ? "" : c[key];
+    inp.dataset.inputCat = c.id;
+    inp.dataset.inputKey = key;
+    function handle(e){
+      var v = sanitizeInput(e.target.value);
+      if (e.target.value !== "" && isNaN(v)) {
+        inp.classList.add("invalid");
+        return;
+      }
+      inp.classList.remove("invalid");
+      c[key] = v;
+      onChange();
+    }
+    inp.addEventListener("input", handle);
+    inp.addEventListener("change", handle);
+    return inp;
+  }
+
+  function render(){
+    recalcAll();
+    var visible = orderIds.slice();
+
+    buildHead(headRow, visible, false);
+    buildHead(extraHeadRow, visible, true);
+
+    ROW_KEYS_MAIN.forEach(function(rowKey){
+      var tr = table.querySelector('tr[data-row="' + rowKey + '"]');
+      if (!tr) return;
+      tr.querySelectorAll("td:not(.rowhead)").forEach(function(td){ td.remove(); });
+      var fragRow = document.createDocumentFragment();
+      visible.forEach(function(id){
+        var c = categories.find(function(x){ return x.id === id; });
+        if (!c) return;
+        var td = document.createElement("td");
+        if (INPUT_ROWS_MAIN.indexOf(rowKey) !== -1) {
+          td.className = "cell-input";
+          td.appendChild(makeInput(c, rowKey, (rowKey === "sales") ? "1" : "0.01", onInputChange));
+        } else if (rowKey === "delete") {
+          td.className = "cell-input";
+          var b = document.createElement("button");
+          b.className = "del-btn"; b.textContent = "✕"; b.title = "Удалить категорию";
+          b.addEventListener("click", function(){ removeCategory(id); });
+          td.appendChild(b);
+        } else if (rowKey === "status") {
+          var r2 = calcMap[id] || calcOne(c);
+          var st = statusOf(c, r2);
+          td.className = "calc";
+          td.style.textAlign = "center";
+          td.dataset.statusCat = id;
+          td.innerHTML = st
+            ? '<span class="status-badge '+STATUS_META[st].cls+'">'+STATUS_META[st].label+'</span>'
+            : '<span class="status-badge st-dash">Недостаточно данных</span>';
+        } else {
+          var r = calcMap[id] || calcOne(c);
+          var val = r[rowKey];
+          td.dataset.calc = rowKey;
+          td.dataset.cat = id;
+          td.className = "calc " + signClass(rowKey, val);
+          td.textContent = formatVal(rowKey, val, r.hasGoal);
+        }
+        fragRow.appendChild(td);
+      });
+      tr.appendChild(fragRow);
+    });
+
+    ROW_KEYS_EXTRA.forEach(function(rowKey){
+      var tr = extraTable.querySelector('tr[data-row="' + rowKey + '"]');
+      if (!tr) return;
+      tr.querySelectorAll("td:not(.rowhead)").forEach(function(td){ td.remove(); });
+      var fragRow = document.createDocumentFragment();
+      visible.forEach(function(id){
+        var c = categories.find(function(x){ return x.id === id; });
+        if (!c) return;
+        var td = document.createElement("td");
+        td.className = "cell-input";
+        td.appendChild(makeInput(c, rowKey, "0.01", onInputChange));
+        fragRow.appendChild(td);
+      });
+      tr.appendChild(fragRow);
+    });
+
+    updateExtraIndicator();
+
+    if (categories.length) {
+      resultPeriod.textContent = "Расчёт по заданным допущениям обновляется автоматически. Не подтверждает спрос.";
+      resultPeriod.classList.add("show");
+    } else {
+      resultPeriod.textContent = "";
+      resultPeriod.classList.remove("show");
+    }
+
+    renderSummary();
+  }
+
+  function updateExtraIndicator(){
+    var anyExtra = false;
+    for (var i=0;i<categories.length;i++){
+      if (!isNaN(categories[i].commission) || !isNaN(categories[i].other)) { anyExtra = true; break; }
+    }
+    if (anyExtra) {
+      extraIndicator.textContent = "Дополнительные расходы учтены";
+      extraIndicator.className = "indicator ind-active";
+    } else {
+      extraIndicator.textContent = "Расчёт без комиссии и прочих переменных расходов";
+      extraIndicator.className = "indicator ind-neutral";
+    }
+  }
+
+  function onInputChange(){
+    recalcAll();
+    categories.forEach(function(c){
+      var r = calcMap[c.id];
+      CALC_KEYS.forEach(function(key){
+        var td = table.querySelector('td[data-cat="'+c.id+'"][data-calc="'+key+'"]');
+        if (!td) return;
+        var val = r[key];
+        td.className = "calc " + signClass(key, val);
+        td.textContent = formatVal(key, val, r.hasGoal);
+      });
+      var stTd = table.querySelector('td[data-status-cat="'+c.id+'"]');
+      if (stTd) {
+        var st = statusOf(c, r);
+        stTd.innerHTML = st
+          ? '<span class="status-badge '+STATUS_META[st].cls+'">'+STATUS_META[st].label+'</span>'
+          : '<span class="status-badge st-dash">Недостаточно данных</span>';
+      }
+    });
+    updateExtraIndicator();
+    renderSummary();
+  }
+
+  function renderSummary(){
+    var rows = categories.map(function(c){
+      var r = calcMap[c.id] || calcOne(c);
+      return {c:c, r:r, st:statusOf(c, r)};
+    });
+    if (!rows.length) {
+      summaryEl.innerHTML = '<div class="item"><span class="label">Нет категорий.</span></div>';
+      totalsEl.innerHTML = '';
+      recsWrap.innerHTML = '';
+      return;
+    }
+
+    function best(key){
+      var best = null;
+      rows.forEach(function(x){
+        if (x.st === null) return;
+        var v = x.r[key];
+        if (v === null || isNaN(v)) return;
+        if (!best || v > best.v) best = {v:v, c:x.c};
+      });
+      return best ? {name: displayName(best.c), val: best.v} : null;
+    }
+    var bp = best("profit"), bm = best("marginPct");
+
+    var html = "";
+    html += '<div class="item"><span class="label">Лучшая по плановой прибыли после рекламы (зависит от введённого количества продаж):</span>' +
+      (bp ? '<b>'+esc(bp.name)+'</b> — '+money(bp.val)+' ₽' : '—') + '</div>';
+    html += '<div class="item"><span class="label">Лучшая по маржинальности:</span>' +
+      (bm ? '<b>'+esc(bm.name)+'</b> — '+pct(bm.val)+'%' : '—') + '</div>';
+    summaryEl.innerHTML = html;
+
+    var tRevenue=0, tProfit=0, tAds=0;
+    var hasRev=false, hasProfit=false, hasAds=false;
+    rows.forEach(function(x){
+      if (!isNaN(x.r.revenue)) { tRevenue += x.r.revenue; hasRev=true; }
+      if (!isNaN(x.r.profit)) { tProfit += x.r.profit; hasProfit=true; }
+      if (!isNaN(x.c.budget)) { tAds += x.c.budget; hasAds=true; }
+    });
+    var tDrr = (hasAds && hasRev && tRevenue !== 0) ? (tAds / tRevenue * 100) : NaN;
+
+    function card(k, v, neg, dash){
+      return '<div class="t"><div class="k">'+k+'</div><div class="v'+(neg?' neg':'')+(dash?' dash':'')+'">'+v+'</div></div>';
+    }
+    var totalsHtml = "";
+    totalsHtml += card("Общая плановая выручка", hasRev ? money(tRevenue)+" ₽" : "—", false, !hasRev);
+    totalsHtml += card("Общие рекламные расходы", hasAds ? money(tAds)+" ₽" : "—", false, !hasAds);
+    totalsHtml += card("Общая плановая прибыль после рекламы", hasProfit ? money(tProfit)+" ₽" : "—", tProfit < 0, !hasProfit);
+    totalsHtml += card("Общий плановый ДРР", isNaN(tDrr) ? "—" : pct(tDrr)+"%", false, isNaN(tDrr));
+    totalsEl.innerHTML = totalsHtml;
+
+    var recHtml = '<table class="rec-table"><thead><tr>' +
+      '<th>Категория</th><th>Статус</th><th>Основание в цифрах</th><th>Рекомендация</th>' +
+      '</tr></thead><tbody>';
+    rows.forEach(function(x){
+      var meta = x.st ? STATUS_META[x.st] : STATUS_META.dash;
+      var basis = statusBasis(x.r, x.st);
+      recHtml += '<tr>' +
+        '<td class="cat">'+esc(displayName(x.c))+'</td>' +
+        '<td><span class="status-badge '+meta.cls+'">'+meta.label+'</span></td>' +
+        '<td>'+esc(basis)+'</td>' +
+        '<td>'+esc(meta.rec)+'</td>' +
+      '</tr>';
+    });
+    recHtml += '</tbody></table>';
+    recsWrap.innerHTML = recHtml;
+  }
+
+  function onAdd(){
+    if (categories.length >= MAX_CATS) return;
+    addCategory("");
+    render();
+  }
+
+  function removeCategory(id){
+    categories = categories.filter(function(c){ return c.id !== id; });
+    orderIds = orderIds.filter(function(x){ return x !== id; });
+    inputOrder = inputOrder.filter(function(x){ return x !== id; });
+    delete calcMap[id];
+    render();
+  }
+
+  function doCalculate(){
+    orderIds = inputOrder.slice();
+    render();
+  }
+
+  function applySort(){
+    var key = sortSelect.value;
+    var asc = ascChk.checked;
+    recalcAll();
+    var arr = categories.slice();
+    arr.sort(function(x, y){
+      var rx = calcMap[x.id], ry = calcMap[y.id];
+      var vx = rx[key], vy = ry[key];
+      var nx = (vx === null || isNaN(vx)), ny = (vy === null || isNaN(vy));
+      if (nx && ny) return 0;
+      if (nx) return 1;
+      if (ny) return -1;
+      return asc ? vx - vy : vy - vx;
+    });
+    orderIds = arr.map(function(c){ return c.id; });
+    render();
+  }
+
+  function resetOrder(){
+    orderIds = inputOrder.slice();
+    render();
+  }
+
+  function toCsv(){
+    recalcAll();
+    var sep = ";";
+    var lines = [];
+
+    var headers = ["Показатель"].concat(categories.map(function(c){ return displayName(c); }));
+    lines.push(headers.map(csvCell).join(sep));
+
+    var inputLabels = {
+      price:"Цена продажи за единицу, ₽",
+      purchase:"Закупочная цена за единицу, ₽",
+      delivery:"Доставка до склада за единицу, ₽",
+      packing:"Упаковка за единицу, ₽",
+      budget:"Планируемый рекламный бюджет, ₽",
+      sales:"Ожидаемое количество продаж, шт.",
+      commission:"Комиссия маркетплейса/канала за единицу, ₽",
+      other:"Прочие переменные расходы за единицу, ₽",
+      minProfit:"Желаемая минимальная прибыль с продажи, ₽"
+    };
+    var calcLabels = {
+      varCost:"Переменные расходы на единицу, ₽",
+      margin:"Маржа с одной продажи, ₽",
+      marginPct:"Маржинальность, %",
+      cpoPlan:"Планируемый CPO, ₽",
+      cpoAllowed:"Допустимый CPO, ₽ (с учётом цели или до безубыточности)",
+      revenue:"Планируемая выручка, ₽",
+      drr:"Планируемый ДРР, %",
+      profit:"Плановая прибыль после рекламы, ₽",
+      breakEven:"Продаж для окупаемости рекламы, шт."
+    };
+
+    Object.keys(inputLabels).forEach(function(key){
+      var row = [inputLabels[key]];
+      categories.forEach(function(c){
+        row.push(isNaN(c[key]) ? "" : String(c[key]).replace(".", ","));
+      });
+      lines.push(row.map(csvCell).join(sep));
+    });
+
+    Object.keys(calcLabels).forEach(function(key){
+      var row = [calcLabels[key]];
+      categories.forEach(function(c){
+        var val = calcMap[c.id][key];
+        if (val === null || val === undefined || isNaN(val)) { row.push("—"); return; }
+        if (["marginPct","drr"].indexOf(key) !== -1) row.push(pct(val) + "%");
+        else if (key === "breakEven") row.push(String(val));
+        else row.push(money(val));
+      });
+      lines.push(row.map(csvCell).join(sep));
+    });
+
+    var goalRow = ["Желаемая прибыль задана"];
+    var stRow = ["Статус"];
+    var basisRow = ["Основание в цифрах"];
+    var recRow = ["Рекомендация"];
+    categories.forEach(function(c){
+      var r = calcMap[c.id];
+      var st = statusOf(c, r);
+      var meta = st ? STATUS_META[st] : STATUS_META.dash;
+      goalRow.push(r.hasGoal ? "да" : "нет");
+      stRow.push(meta.label);
+      basisRow.push(statusBasis(r, st));
+      recRow.push(meta.rec);
+    });
+    lines.push(goalRow.map(csvCell).join(sep));
+    lines.push(stRow.map(csvCell).join(sep));
+    lines.push(basisRow.map(csvCell).join(sep));
+    lines.push(recRow.map(csvCell).join(sep));
+
+    lines.push("");
+    lines.push(csvCell("Расчёт по заданным допущениям. Не подтверждает спрос и не определяет, какую категорию запускать."));
+    lines.push(csvCell("Комиссия маркетплейса или канала указывается только при продаже через площадку или иной канал с комиссией."));
+
+    var blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "sravnenie_kategoriy.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function csvCell(v){
+    var s = String(v === null || v === undefined ? "" : v);
+    if (/[";\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  btnCalc.addEventListener("click", doCalculate);
+  btnCsv.addEventListener("click", toCsv);
+  btnSortApply.addEventListener("click", applySort);
+  btnResetOrder.addEventListener("click", resetOrder);
+
+  addCategory("");
+  render();
+})();
+</script>
+</body>
+</html>
