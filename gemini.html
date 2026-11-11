@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор эффективности товаров и товарных категорий</title>
+<style>
+  :root{
+    --green-line: rgba(0,110,70,0.35);
+    --green-soft: rgba(0,110,70,0.06);
+    --green-text: rgb(0,80,50);
+    --green-cell: rgba(0,140,85,0.12);
+    --red-soft: rgba(190,50,50,0.09);
+    --red-text: rgb(150,40,40);
+    --yellow-soft: rgba(220,140,0,0.10);
+    --yellow-text: rgb(160,90,0);
+    --border: rgba(0,110,70,0.18);
+    --muted: #3d4a43;
+    --text: #111;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:24px 16px 60px;background:#fff;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.45;}
+  .wrap{max-width:1200px;margin:0 auto;}
+
+  header.hero{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:16px;
+    padding:24px 26px 20px;margin-bottom:20px;
+    background:radial-gradient(120% 160% at 100% 0%, var(--green-soft), transparent 60%), #fff;}
+  /* Сетка уходящая вдаль в правом верхнем углу */
+  header.hero::before{content:"";position:absolute;inset:-20% -10% auto auto;width:600px;height:500px;pointer-events:none;
+    background-image:linear-gradient(var(--green-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--green-line) 1px, transparent 1px);
+    background-size:30px 30px;transform:perspective(500px) rotateX(45deg) rotateZ(-15deg);opacity:.28;
+    mask-image:radial-gradient(circle at 80% 20%, #000 0%, transparent 75%);
+    -webkit-mask-image:radial-gradient(circle at 80% 20%, #000 0%, transparent 75%);}
+  
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; 
+    position: relative;
+    z-index: 2;
+    margin-bottom: 8px;
+    gap: 20px;
+  }
+  
+  .hero-title {
+    margin: 0;
+    font-size: 22px;
+    color: var(--green-text);
+    font-weight: 700;
+    line-height: 1.2;
+    flex: 1;
+    max-width: 750px;
+  }
+
+  .calc-logo {
+    height: 75px;
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .hero-text p { margin: 0 0 6px; max-width: 860px; color: var(--text); font-weight: 500; position: relative; z-index: 2;}
+  .meta { font-size: 12.5px; color: var(--muted); font-weight: 500; position: relative; z-index: 2; margin-top: 6px;}
+
+  @media (max-width: 768px) {
+    .hero-top { flex-direction: column; gap: 10px; }
+    .calc-logo { height: 60px; margin-top: 0; }
+    .hero-title { font-size: 18px; }
+  }
+
+  section.card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;background:#fff;}
+  section.card h2{margin:0 0 12px;font-size:15px;color:var(--green-text);font-weight:700;}
+
+  .dates{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:190px;}
+  .field label{font-size:12.5px;color:var(--text);font-weight:500;}
+
+  input[type="date"], input[type="text"], input[type="number"]{
+    height:38px;padding:0 10px;font-size:14px;color:var(--text);border:1px solid rgba(0,110,70,0.3);
+    border-radius:8px;background:#fff;outline:none;font-family:inherit;width:100%;font-weight:500;}
+  input[type="number"]{-moz-appearance:textfield;appearance:textfield;}
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input:focus{border-color:rgba(0,110,70,0.7);box-shadow:0 0 0 3px rgba(0,110,70,0.08);}
+  .invalid{border-color:rgba(190,50,50,.6);box-shadow:0 0 0 3px rgba(190,50,50,.08);}
+  .warn{margin-top:12px;padding:11px 14px;font-size:13px;border:1px solid var(--green-line);
+    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);color:var(--green-text);font-weight:500;}
+  .date-error{margin-top:10px;font-size:12.5px;color:var(--red-text);display:none;}
+  .date-error.show{display:block;}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 16px;
+    font-size:13.5px;font-family:inherit;border:1px solid var(--green-line);border-radius:8px;
+    background:rgba(0,110,70,0.04);color:var(--green-text);cursor:pointer;font-weight:600;
+    transition:background .15s,border-color .15s;white-space:nowrap;}
+  .btn:hover{background:rgba(0,110,70,0.09);border-color:rgba(0,110,70,0.55);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center;}
+  .hint{font-size:12.5px;color:var(--text);font-weight:500;}
+
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:#fff;}
+  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
+  th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+    padding:7px 9px;text-align:right;vertical-align:middle;height:40px;
+    font-variant-numeric:tabular-nums;white-space:nowrap;}
+  thead th{background:rgba(0,110,70,0.05);color:var(--green-text);font-weight:700;font-size:12.5px;text-align:center;}
+  thead th.cat-col{padding:6px;min-width:150px;text-align:center;vertical-align:middle;}
+  thead th.cat-col input{height:30px;font-size:13px;text-align:center;}
+  thead th.plus-col{background:transparent;border-right:none;vertical-align:middle;text-align:center;padding:6px;}
+  thead th.plus-col .btn{height:32px;padding:0 12px;border-style:dashed;}
+
+  /* Липкая колонка параметров */
+  th.rowhead, td.rowhead{
+    position: sticky; left: 0; z-index: 2; text-align: left; 
+    min-width: 220px; max-width: 240px;
+    white-space: normal; font-weight: 600; 
+    background-color: #fff !important; 
+    border-left: none; box-shadow: 4px 0 8px rgba(0,0,0,0.08);
+  }
+  thead th.rowhead{background-color: #f2fcf5 !important; z-index: 3;}
+  tbody tr:nth-child(even) td.rowhead{background-color: #fcfdfc !important;}
+
+  td.cell-input{padding:4px 6px;text-align:center;}
+  td.cell-input input{height:30px;text-align:right;font-size:13px;}
+  td.calc{color:var(--text);font-size:13px;text-align:right;font-weight:600;}
+  td.pos{background:var(--green-cell);color:var(--green-text);font-weight:700;}
+  td.neg{background:var(--red-soft);color:var(--red-text);font-weight:700;}
+
+  .del-btn{height:26px;width:28px;padding:0;font-size:13px;line-height:1;border:1px solid var(--border);
+    border-radius:6px;background:rgba(190,50,50,.04);color:var(--red-text);cursor:pointer;font-family:inherit;}
+  .del-btn:hover{background:rgba(190,50,50,.10);border-color:rgba(190,50,50,.5);}
+
+  .result-period{margin:10px 0 0;font-size:12.5px;color:var(--green-text);display:none;font-weight:500;}
+  .result-period.show{display:block;}
+
+  .compare-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+  .compare-row select{height:38px;padding:0 10px;font-size:13.5px;font-weight:500;
+    font-family:inherit;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;}
+  .compare-row select:focus{border-color:rgba(0,110,70,0.55);}
+
+  .summary{display:grid;gap:8px;font-size:13px;margin-bottom:14px;}
+  .summary .item{padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+    background:var(--green-soft);color:var(--green-text);font-weight:500;}
+  .summary .label{font-size:12px;color:var(--green-text);opacity:0.8;margin-right:6px;font-weight:600;}
+
+  .totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:14px;}
+  .totals .t{padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;}
+  .totals .t .k{font-size:11.5px;color:var(--text);margin-bottom:4px;font-weight:600;}
+  .totals .t .v{font-size:14px;font-weight:700;color:var(--green-text);}
+  .totals .t .v.neg{color:var(--red-text);}
+
+  .status-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .st-green{background:rgba(0,140,85,.14);color:rgb(0,90,58);}
+  .st-yellow{background:var(--yellow-soft);color:var(--yellow-text);}
+  .st-orange{background:rgba(220,120,0,.15);color:rgb(160,80,0);}
+  .st-red{background:rgba(190,50,50,.13);color:var(--red-text);}
+
+  /* Практичные рекомендации вместо заумной галиматьи */
+  .guide-box{margin-bottom:14px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:#f9fbf9;font-size:13px;line-height:1.5;}
+  .guide-box ol{margin:6px 0 0;padding-left:20px;}
+  .guide-box li{margin-bottom:4px;}
+
+  .rec-card{padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:#fff;}
+  .rec-card-title{font-weight:700;color:var(--green-text);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .rec-card p{margin:4px 0;color:var(--text);font-weight:500;}
+  .rec-card .check-hint{color:var(--muted);font-size:12.5px;font-style:italic;}
+
+  .formulas{font-size:13px;color:var(--text);font-weight:500;}
+  .formulas ul{margin:0;padding-left:18px;}
+  .formulas li{margin-bottom:5px;}
+  .formulas .important{margin-top:12px;padding:11px 14px;border:1px solid var(--green-line);
+    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);
+    color:var(--green-text);font-size:13px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <h1 class="hero-title">Калькулятор эффективности товаров и товарных категорий</h1>
+      <!-- Логотип подгружается автоматически, если файл logo.png находится в корне -->
+      <img src="logo.png" alt="" class="calc-logo" onerror="this.style.display='none'">
+    </div>
+    
+    <div class="hero-text">
+      <p>Инструмент для маркетологов и владельцев интернет-магазинов: сравнение отдельных товаров и целых категорий по выручке, маржинальности, рекламным затратам, CPO, ДРР и ROMI.</p>
+      <p class="meta">Расчеты основаны на срезе за выбранный период. Помогают быстро увидеть проблемные места и точки роста бюджета.</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Период анализа</h2>
+    <div class="dates">
+      <div class="field"><label for="dateFrom">Начало периода</label><input type="date" id="dateFrom"></div>
+      <div class="field"><label for="dateTo">Окончание периода</label><input type="date" id="dateTo"></div>
+    </div>
+    <div class="warn">⚠ Все данные по позициям должны быть указаны за один и тот же временной отрезок.</div>
+    <div class="date-error" id="dateError">Укажите обе даты, причем дата начала не должна быть позже даты окончания.</div>
+  </section>
+
+  <section class="card">
+    <div class="toolbar">
+      <button class="btn" id="btnCalc">Рассчитать</button>
+      <button class="btn" id="btnCsv">Скачать CSV</button>
+      <span class="hint">До 20 столбцов. Названия можно менять: например, «Тормозные колодки», «Фильтр масляный», «Косметика».</span>
+    </div>
+    <div class="table-scroll">
+      <table id="calcTable">
+        <thead><tr id="headRow"><th class="rowhead">Показатель</th></tr></thead>
+        <tbody>
+          <tr data-row="orders"><td class="rowhead">Количество оплаченных заказов</td></tr>
+          <tr data-row="revenue"><td class="rowhead">Выручка, ₽</td></tr>
+          <tr data-row="cost"><td class="rowhead">Закупочная стоимость, ₽</td></tr>
+          <tr data-row="ads"><td class="rowhead">Рекламные расходы, ₽</td></tr>
+          <tr data-row="gross"><td class="rowhead">Валовая прибыль</td></tr>
+          <tr data-row="margin"><td class="rowhead">Маржинальность</td></tr>
+          <tr data-row="avgcheck"><td class="rowhead">Средний чек</td></tr>
+          <tr data-row="cpo"><td class="rowhead">CPO (стоимость заказа)</td></tr>
+          <tr data-row="drr"><td class="rowhead">ДРР</td></tr>
+          <tr data-row="profit"><td class="rowhead">Прибыль после рекламы</td></tr>
+          <tr data-row="romi"><td class="rowhead">ROMI</td></tr>
+          <tr data-row="status"><td class="rowhead">Статус</td></tr>
+          <tr data-row="delete"><td class="rowhead">Удалить</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="result-period" id="resultPeriod"></p>
+  </section>
+
+  <section class="card">
+    <h2>Анализ и практические рекомендации</h2>
+
+    <div class="guide-box">
+      <strong>Как устроен экспресс-анализ по данным за период:</strong>
+      <ol>
+        <li><strong>Сравнение юнит-экономики:</strong> Сопоставляем стоимость привлечения заказа (CPO) и валовую прибыль, которую этот заказ приносит. Если CPO выше прибыли — реклама в убытке.</li>
+        <li><strong>Поиск причины:</strong> Если реклама не окупается, смотрим на маржу. Либо товар приносит слишком мало прибыли (цена/закупка), либо привлечение обходится слишком дорого (реклама/ставки).</li>
+        <li><strong>Распределение бюджета:</strong> Прибыльные позиции сравниваем по отдаче на вложенный рубль рекламы — определяем, куда безопасно добавлять бюджет в первую очередь.</li>
+      </ol>
+      <div style="margin-top:6px; color:var(--muted); font-size:12px;">* Выводы ниже формируются как рабочие гипотезы («похоже», «стоит проверить»), так как калькулятор анализирует срез за один период.</div>
+    </div>
+
+    <div class="compare-row">
+      <label for="sortSelect" style="font-size:13px;color:var(--text);font-weight:600;">Сортировать по:</label>
+      <select id="sortSelect">
+        <option value="profit">Прибыль после рекламы</option>
+        <option value="romi">ROMI</option>
+        <option value="margin">Маржинальность</option>
+        <option value="drr">ДРР</option>
+        <option value="cpo">CPO</option>
+        <option value="avgcheck">Средний чек</option>
+        <option value="gross">Валовая прибыль</option>
+        <option value="revenue">Выручка</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);font-weight:500;">
+        <input type="checkbox" id="ascChk" style="width:16px;height:16px;"> по возрастанию
+      </label>
+      <button class="btn" id="btnSortApply">Применить</button>
+      <button class="btn" id="btnResetOrder">Сбросить порядок</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <h2 style="margin-top:10px;font-size:14px;">Итоги по всем позициям</h2>
+    <div class="totals" id="totals"></div>
+
+    <h2 style="margin-top:10px;font-size:14px;">Разбор и гипотезы по позициям</h2>
+    <div id="recsWrap"></div>
+  </section>
+
+  <section class="card formulas">
+    <h2>Формулы расчёта</h2>
+    <ul>
+      <li><b>Валовая прибыль</b> = Выручка − Закупочная стоимость.</li>
+      <li><b>Маржинальность</b> = Валовая прибыль / Выручка × 100%.</li>
+      <li><b>Средний чек</b> = Выручка / Количество заказов.</li>
+      <li><b>CPO</b> = Рекламные расходы / Количество заказов.</li>
+      <li><b>ДРР</b> = Рекламные расходы / Выручка × 100%.</li>
+      <li><b>Прибыль после рекламы</b> = Валовая прибыль − Рекламные расходы <i>(без учета аренды, зарплат, налогов и логистики)</i>.</li>
+      <li><b>ROMI</b> = Прибыль после рекламы / Рекламные расходы × 100%.</li>
+    </ul>
+    <div class="important">Инструмент подсвечивает текущую эффективность, но решение о масштабировании принимайте с учетом сезонности, остатков на складе и повторных продаж (LTV).</div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MAX_CATS = 20;
+  var INPUT_ROWS = ["orders","revenue","cost","ads"];
+  var ROW_KEYS = ["orders","revenue","cost","ads","gross","margin","avgcheck","cpo","drr","profit","romi","status","delete"];
+  var CALC_KEYS = ["gross","margin","avgcheck","cpo","drr","profit","romi"];
+
+  var table = document.getElementById("calcTable");
+  var headRow = document.getElementById("headRow");
+  var btnCalc = document.getElementById("btnCalc");
+  var btnCsv = document.getElementById("btnCsv");
+  var btnSortApply = document.getElementById("btnSortApply");
+  var btnResetOrder = document.getElementById("btnResetOrder");
+  var dateFrom = document.getElementById("dateFrom");
+  var dateTo = document.getElementById("dateTo");
+  var dateError = document.getElementById("dateError");
+  var resultPeriod = document.getElementById("resultPeriod");
+  var sortSelect = document.getElementById("sortSelect");
+  var ascChk = document.getElementById("ascChk");
+  var summaryEl = document.getElementById("summary");
+  var totalsEl = document.getElementById("totals");
+  var recsWrap = document.getElementById("recsWrap");
+
+  var categories = [];    
+  var catIdSeq = 0;
+  var orderIds = [];      
+  var inputOrder = [];    
+  var calculated = false;
+  var calcMap = {};       
+
+  function toNum(v){
+    if (v === "" || v === null || v === undefined) return NaN;
+    var s = String(v).replace(",", ".").trim();
+    if (s === "") return NaN;
+    var n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  function money(v){ return v.toFixed(2).replace(".", ","); }
+  function pct(v){ return v.toFixed(1).replace(".", ","); }
+
+  function addCategory(name){
+    if (categories.length >= MAX_CATS) return null;
+    var c =
