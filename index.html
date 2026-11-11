@@ -8,13 +8,13 @@
   :root{
     --green-line: rgba(0,110,70,0.35);
     --green-soft: rgba(0,110,70,0.06);
-    --green-text: rgb(0,90,58);
+    --green-text: rgb(0,80,50);
     --green-cell: rgba(0,140,85,0.12);
     --red-soft: rgba(190,50,50,0.09);
     --red-text: rgb(150,40,40);
     --border: rgba(0,110,70,0.18);
-    --muted: #6b7a72;
-    --text: #1e2a24;
+    --muted: #3d4a43;
+    --text: #111;
     --radius: 10px;
   }
   *{box-sizing:border-box;}
@@ -32,113 +32,160 @@
     background-size:26px 26px;transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);opacity:.32;
     mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
     -webkit-mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);}
-  header.hero h1{margin:0 0 8px;font-size:22px;color:var(--green-text);position:relative;}
-  header.hero p{margin:0 0 6px;max-width:860px;color:var(--muted);position:relative;}
-  .meta{font-size:12.5px;color:var(--green-text);opacity:.85;position:relative;}
+  
+  /* ОБЩИЙ БЛОК ДЛЯ ЗАГОЛОВКА И ЛОГОТИПА */
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; 
+    position: relative;
+    z-index: 2;
+    margin-bottom: 8px;
+  }
+  
+  .hero-title {
+    margin: 0;
+    font-size: 22px;
+    color: var(--green-text);
+    font-weight: 700;
+    line-height: 1.2;
+    flex: 1;
+    padding-right: 20px;
+  }
+
+  /* ТВОЙ ЛОГОТИП */
+  .calc-logo {
+    height: 75px;
+    width: 60px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+    margin-top: 8px; /* Вот тут мы опускаем его ровно на уровень строчных букв */
+  }
+
+  .hero-text p { margin: 0 0 6px; max-width: 860px; color: var(--text); font-weight: 500; position: relative; z-index: 2;}
+  .meta { font-size: 12.5px; color: var(--muted); font-weight: 500; position: relative; z-index: 2; margin-top: 6px;}
+
+  @media (max-width: 600px) {
+    .calc-logo {
+      height: 50px;
+      width: 40px;
+      margin-top: 5px;
+    }
+    .hero-title {
+      font-size: 18px;
+    }
+  }
 
   section.card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;background:#fff;}
-  section.card h2{margin:0 0 12px;font-size:15px;color:var(--green-text);font-weight:600;}
+  section.card h2{margin:0 0 12px;font-size:15px;color:var(--green-text);font-weight:700;}
 
   .dates{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;}
   .field{display:flex;flex-direction:column;gap:5px;min-width:190px;}
-  .field label{font-size:12.5px;color:var(--muted);}
+  .field label{font-size:12.5px;color:var(--text);font-weight:500;}
 
   input[type="date"], input[type="text"], input[type="number"]{
-    height:38px;padding:0 10px;font-size:14px;color:var(--text);border:1px solid var(--border);
-    border-radius:8px;background:#fff;outline:none;font-family:inherit;width:100%;}
+    height:38px;padding:0 10px;font-size:14px;color:var(--text);border:1px solid rgba(0,110,70,0.3);
+    border-radius:8px;background:#fff;outline:none;font-family:inherit;width:100%;font-weight:500;}
   input[type="number"]{-moz-appearance:textfield;appearance:textfield;}
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-  input:focus{border-color:rgba(0,110,70,0.55);box-shadow:0 0 0 3px rgba(0,110,70,0.08);}
+  input:focus{border-color:rgba(0,110,70,0.7);box-shadow:0 0 0 3px rgba(0,110,70,0.08);}
   .invalid{border-color:rgba(190,50,50,.6);box-shadow:0 0 0 3px rgba(190,50,50,.08);}
   .warn{margin-top:12px;padding:11px 14px;font-size:13px;border:1px solid var(--green-line);
-    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);color:var(--green-text);}
+    border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);color:var(--green-text);font-weight:500;}
   .date-error{margin-top:10px;font-size:12.5px;color:var(--red-text);display:none;}
   .date-error.show{display:block;}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 16px;
     font-size:13.5px;font-family:inherit;border:1px solid var(--green-line);border-radius:8px;
-    background:rgba(0,110,70,0.04);color:var(--green-text);cursor:pointer;
+    background:rgba(0,110,70,0.04);color:var(--green-text);cursor:pointer;font-weight:600;
     transition:background .15s,border-color .15s;white-space:nowrap;}
   .btn:hover{background:rgba(0,110,70,0.09);border-color:rgba(0,110,70,0.55);}
   .btn:disabled{opacity:.4;cursor:not-allowed;}
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center;}
-  .hint{font-size:12.5px;color:var(--muted);}
+  .hint{font-size:12.5px;color:var(--text);font-weight:500;}
 
   .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:#fff;}
   table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
   th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);
     padding:7px 9px;text-align:right;vertical-align:middle;height:40px;
     font-variant-numeric:tabular-nums;white-space:nowrap;}
-  thead th{background:rgba(0,110,70,0.05);color:var(--green-text);font-weight:600;font-size:12.5px;text-align:center;}
+  thead th{background:rgba(0,110,70,0.05);color:var(--green-text);font-weight:700;font-size:12.5px;text-align:center;}
   thead th.cat-col{padding:6px;min-width:145px;text-align:center;vertical-align:middle;}
   thead th.cat-col input{height:30px;font-size:13px;text-align:center;}
   thead th.plus-col{background:transparent;border-right:none;vertical-align:middle;text-align:center;padding:6px;}
   thead th.plus-col .btn{height:32px;padding:0 12px;border-style:dashed;}
 
   th.rowhead, td.rowhead{position:sticky;left:0;z-index:2;text-align:left;min-width:215px;max-width:235px;
-    white-space:normal;font-weight:500;background:#fff;border-left:none;}
+    white-space:normal;font-weight:600;background:#fff;border-left:none;}
   thead th.rowhead{background:rgba(0,110,70,0.05);z-index:3;}
   tbody tr:nth-child(even) td.rowhead{background:#fcfdfc;}
 
   td.cell-input{padding:4px 6px;text-align:center;}
   td.cell-input input{height:30px;text-align:right;font-size:13px;}
-  td.calc{color:var(--text);font-size:13px;text-align:right;}
-  td.pos{background:var(--green-cell);color:var(--green-text);font-weight:600;}
-  td.neg{background:var(--red-soft);color:var(--red-text);font-weight:600;}
+  td.calc{color:var(--text);font-size:13px;text-align:right;font-weight:600;}
+  td.pos{background:var(--green-cell);color:var(--green-text);font-weight:700;}
+  td.neg{background:var(--red-soft);color:var(--red-text);font-weight:700;}
 
   .del-btn{height:26px;width:28px;padding:0;font-size:13px;line-height:1;border:1px solid var(--border);
     border-radius:6px;background:rgba(190,50,50,.04);color:var(--red-text);cursor:pointer;font-family:inherit;}
   .del-btn:hover{background:rgba(190,50,50,.10);border-color:rgba(190,50,50,.5);}
 
-  .result-period{margin:10px 0 0;font-size:12.5px;color:var(--green-text);display:none;}
+  .result-period{margin:10px 0 0;font-size:12.5px;color:var(--green-text);display:none;font-weight:500;}
   .result-period.show{display:block;}
 
   .compare-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
-  .compare-row select{height:38px;padding:0 10px;font-size:13.5px;
+  .compare-row select{height:38px;padding:0 10px;font-size:13.5px;font-weight:500;
     font-family:inherit;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;}
   .compare-row select:focus{border-color:rgba(0,110,70,0.55);}
 
   .summary{display:grid;gap:8px;font-size:13px;margin-bottom:14px;}
   .summary .item{padding:9px 12px;border:1px solid var(--border);border-radius:8px;
-    background:var(--green-soft);color:var(--green-text);}
+    background:var(--green-soft);color:var(--green-text);font-weight:500;}
   .summary .item.neg{background:var(--red-soft);border-color:rgba(190,50,50,.3);color:var(--red-text);}
-  .summary .label{font-size:12px;color:var(--muted);margin-right:6px;}
+  .summary .label{font-size:12px;color:var(--green-text);opacity:0.8;margin-right:6px;font-weight:600;}
 
   .totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:14px;}
   .totals .t{padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;}
-  .totals .t .k{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
-  .totals .t .v{font-size:14px;font-weight:600;color:var(--green-text);}
+  .totals .t .k{font-size:11.5px;color:var(--text);margin-bottom:4px;font-weight:600;}
+  .totals .t .v{font-size:14px;font-weight:700;color:var(--green-text);}
   .totals .t .v.neg{color:var(--red-text);}
 
-  .status-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;}
-  .st-green{background:rgba(0,140,85,.14);color:rgb(0,110,70);}
-  .st-orange{background:rgba(220,120,0,.15);color:rgb(180,90,0);}
+  .status-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .st-green{background:rgba(0,140,85,.14);color:rgb(0,90,58);}
+  .st-orange{background:rgba(220,120,0,.15);color:rgb(160,80,0);}
   .st-red{background:rgba(190,50,50,.13);color:var(--red-text);}
 
   .rec-table{width:100%;border-collapse:collapse;font-size:13px;}
-  .rec-table th{background:rgba(0,110,70,.05);color:var(--green-text);font-size:12px;font-weight:600;
+  .rec-table th{background:rgba(0,110,70,.05);color:var(--green-text);font-size:12px;font-weight:700;
     padding:8px 10px;text-align:left;border:1px solid var(--border);}
-  .rec-table td{padding:8px 10px;border:1px solid var(--border);text-align:left;vertical-align:top;white-space:normal;}
-  .rec-table td.cat{font-weight:600;color:var(--green-text);}
+  .rec-table td{padding:8px 10px;border:1px solid var(--border);text-align:left;vertical-align:top;white-space:normal;font-weight:500;}
+  .rec-table td.cat{font-weight:700;color:var(--green-text);}
   .rec-table td.dash{color:var(--muted);}
 
-  .formulas{font-size:13px;color:#2b3a32;}
+  .formulas{font-size:13px;color:var(--text);font-weight:500;}
   .formulas ul{margin:0;padding-left:18px;}
   .formulas li{margin-bottom:5px;}
   .formulas .important{margin-top:12px;padding:11px 14px;border:1px solid var(--green-line);
     border-left:4px solid var(--green-line);border-radius:8px;background:var(--green-soft);
-    color:var(--green-text);font-size:13px;}
+    color:var(--green-text);font-size:13px;font-weight:500;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="hero">
-    <h1>Калькулятор эффективности товарных категорий</h1>
-    <p>Для сравнения товарных категорий по выручке, валовой прибыли, маржинальности, рекламным расходам, ДРР, CPO, прибыли после рекламы и ROMI.</p>
-    <p>Подходит для товаров с большим количеством категорий: электроника, бытовая техника, косметика, товары для дома, автозапчасти, стройматериалы, зоотовары, продукты питания.</p>
-    <p class="meta">Показатели рассчитываются за выбранный период. Показатели отражают текущий срез за выбранный период. Это не окончательные данные для масштабирования.</p>
+    <div class="hero-top">
+      <h1 class="hero-title">Калькулятор эффективности товарных категорий</h1>
+      <img src="logo.png" alt="" class="calc-logo">
+    </div>
+    
+    <div class="hero-text">
+      <p>Для сравнения товарных категорий по выручке, валовой прибыли, маржинальности, рекламным расходам, ДРР, CPO, прибыли после рекламы и ROMI.</p>
+      <p>Подходит для товаров с большим количеством категорий: электроника, бытовая техника, косметика, товары для дома, автозапчасти, стройматериалы, зоотовары, продукты питания.</p>
+      <p class="meta">Показатели рассчитываются за выбранный период. Показатели отражают текущий срез за выбранный период. Это не окончательные данные для масштабирования.</p>
+    </div>
   </header>
 
   <section class="card">
@@ -184,7 +231,7 @@
     <h2>Сравнение категорий за выбранный период</h2>
 
     <div class="compare-row">
-      <label for="sortSelect" style="font-size:13px;color:var(--muted);">Сортировать по:</label>
+      <label for="sortSelect" style="font-size:13px;color:var(--text);font-weight:600;">Сортировать по:</label>
       <select id="sortSelect">
         <option value="profit">Прибыль после рекламы</option>
         <option value="romi">ROMI</option>
@@ -195,7 +242,7 @@
         <option value="gross">Валовая прибыль</option>
         <option value="revenue">Выручка</option>
       </select>
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);font-weight:500;">
         <input type="checkbox" id="ascChk" style="width:16px;height:16px;"> по возрастанию
       </label>
       <button class="btn" id="btnSortApply">Применить сортировку</button>
@@ -252,15 +299,13 @@
   var totalsEl = document.getElementById("totals");
   var recsWrap = document.getElementById("recsWrap");
 
-  // ЕДИНОЕ состояние
-  var categories = [];    // {id, name, orders:number|NaN, revenue:number|NaN, cost:number|NaN, ads:number|NaN}
+  var categories = [];    
   var catIdSeq = 0;
-  var orderIds = [];      // порядок отображения
-  var inputOrder = [];    // исходный порядок ввода
+  var orderIds = [];      
+  var inputOrder = [];    
   var calculated = false;
-  var calcMap = {};       // id -> {gross, margin, avgcheck, cpo, drr, profit, romi}
+  var calcMap = {};       
 
-  // ЕДИНОЕ преобразование: пусто -> NaN, число -> number
   function toNum(v){
     if (v === "" || v === null || v === undefined) return NaN;
     var s = String(v).replace(",", ".").trim();
@@ -281,7 +326,6 @@
     return c;
   }
 
-  // ЕДИНАЯ функция расчёта одной категории
   function calcOne(c){
     var r = {gross:null, margin:null, avgcheck:null, cpo:null, drr:null, profit:null, romi:null};
     var revenue = c.revenue, cost = c.cost, ads = c.ads, orders = c.orders;
@@ -295,7 +339,6 @@
     return r;
   }
 
-  // ЕДИНЫЙ пересчёт всех категорий в один calcMap
   function recalcAll(){
     calcMap = {};
     for (var i=0;i<categories.length;i++){
@@ -328,7 +371,6 @@
     return "Категория " + (idx + 1);
   }
 
-  // Статусы: убыток до рекламы / убыток после рекламы / прибыльно
   function getStatus(c, r){
     if (!calculated || !hasEnoughData(c)) return null;
     if (r.gross !== null && r.gross < 0) return "red";
@@ -420,7 +462,6 @@
 
   function esc(s){ return String(s).replace(/[&<>"']/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]; }); }
 
-  // Полная перерисовка таблицы (только когда меняется структура/порядок)
   function render(){
     recalcAll();
 
@@ -476,7 +517,6 @@
           inp.dataset.inputCat = id;
           inp.dataset.inputKey = rowKey;
           inp.addEventListener("input", function(e){
-            // СРАЗУ пишем ЧИСЛО в состояние
             c[rowKey] = toNum(e.target.value);
             onInputChange();
           });
@@ -523,7 +563,6 @@
     renderSummary();
   }
 
-  // Ввод: обновляем ТОЛЬКО расчётные ячейки и статус/сводку, НЕ перерисовываем инпуты
   function onInputChange(){
     calculated = true;
     recalcAll();
@@ -593,7 +632,7 @@
   function applySort(){
     var key = sortSelect.value;
     var asc = ascChk.checked;
-    recalcAll(); // свежие данные перед сортировкой
+    recalcAll();
     var arr = categories.slice();
     arr.sort(function(x, y){
       var rx = calcMap[x.id], ry = calcMap[y.id];
@@ -614,7 +653,7 @@
   }
 
   function toCsv(){
-    recalcAll(); // гарантируем актуальные данные
+    recalcAll();
     var sep = ";";
     var lines = [];
     lines.push("Период анализа:;" + fmtDate(dateFrom.value) + ";" + fmtDate(dateTo.value));
