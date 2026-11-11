@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Калькулятор эффективности товарных категорий</title>
+<title>Калькулятор для расчёта и сравнения показателей эффективности отдельных товаров и товарных категорий</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --green:#005032;
-  --line:#b5d3c4;
+  --line:#a9c9ba;
   --soft:#f2f8f4;
+  --teal:#e6f7f4;
+  --teal-text:#0b6b60;
   --red:#962828;
   --redbg:#fbeeee;
   --yellow:#865000;
@@ -20,12 +23,19 @@ body{margin:0;padding:24px 16px 60px;background:white;color:var(--text);font:14p
 .wrap{max-width:1200px;margin:auto}
 
 .hero,.card{border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px;background:white}
-.hero{background:linear-gradient(125deg,white,var(--soft))}
-.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
-.hero h1{font-size:23px;line-height:1.25;color:var(--green);margin:0 0 15px}
-.calc-logo{height:75px;width:auto;max-width:35%;object-fit:contain}
-.hero p{margin:5px 0}
-.meta,.hint{font-size:12.5px;color:#44564b}
+.hero{position:relative;overflow:hidden;background:
+  radial-gradient(120% 160% at 100% 0%,var(--soft),transparent 60%),white}
+.hero::before{content:"";position:absolute;inset:-40% -10% auto auto;width:520px;height:520px;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:26px 26px;transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);opacity:.55;
+  mask-image:radial-gradient(circle at 70% 30%,#000 0%,transparent 70%);
+  -webkit-mask-image:radial-gradient(circle at 70% 30%,#000 0%,transparent 70%)}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;position:relative;z-index:2}
+.hero h1{font-size:23px;line-height:1.25;color:var(--green);margin:0 0 15px;max-width:760px}
+.calc-logo{height:75px;width:auto;max-width:35%;object-fit:contain;flex-shrink:0}
+.hero p{margin:5px 0;position:relative;z-index:2}
+.meta{font-size:13px;color:var(--teal-text);background:var(--teal);padding:8px 12px;border-radius:8px;display:inline-block}
+.hint{font-size:12.5px;color:#44564b}
 h2{font-size:16px;margin:0 0 12px;color:var(--green)}
 
 .dates,.toolbar,.compare{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -99,12 +109,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 <header class="hero">
   <div class="hero-top">
-    <h1>Калькулятор эффективности товарных категорий</h1>
+    <h1>Калькулятор для расчёта и сравнения показателей эффективности отдельных товаров и товарных категорий</h1>
     <img src="logo.png" alt="Логотип" class="calc-logo">
   </div>
-  <p>Для сравнения товарных категорий по выручке, валовой прибыли, маржинальности, рекламным расходам, ДРР, CPO, прибыли после рекламы и ROMI.</p>
-  <p>Подходит для электроники, бытовой техники, косметики, товаров для дома, автозапчастей, стройматериалов, зоотоваров и продуктов питания.</p>
-  <p class="meta">Показатели отражают результат за выбранный период. Для решения о масштабировании нужны дополнительные данные.</p>
+  <p>Выручка, валовая прибыль, маржинальность, рекламные расходы, ДРР, CPO, прибыль после рекламы и ROMI.</p>
+  <p class="meta">Показатели рассчитываются за выбранный период и отражают его текущий срез. Это не окончательные данные для масштабирования.</p>
 </header>
 
 <section class="card">
@@ -120,10 +129,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <section class="card">
   <div class="toolbar">
     <button id="btnCalc" type="button">Рассчитать</button>
-    <button id="btnCsv" type="button">Скачать CSV</button>
+    <button id="btnExcel" type="button">Скачать Excel</button>
     <button id="btnReset" type="button">Сбросить всё</button>
   </div>
-  <p class="hint">Можно добавить до 20 категорий. Числа можно менять в любой момент — результаты обновляются автоматически. Допустимы запятая или точка. Нулевые значения указывайте явно.</p>
+  <p class="hint">Можно добавить до 20 категорий. Названия можно менять. Числа можно менять в любой момент — результаты обновляются автоматически.</p>
 
   <div class="scroll">
     <table id="calcTable">
@@ -397,7 +406,7 @@ function validateAll(){
   return validDates&&!first;
 }
 
-$('calcTable').addEventListener('input',e=>{
+document.addEventListener('input',e=>{
   const el=e.target;
   if(el.hasAttribute('data-name')){
     const c=categories.find(c=>c.id===Number(el.dataset.name));
@@ -414,7 +423,7 @@ $('calcTable').addEventListener('input',e=>{
   }
 });
 
-$('calcTable').addEventListener('click',e=>{
+document.addEventListener('click',e=>{
   const b=e.target.closest('button');
   if(!b)return;
   if(b.id==='btnAdd'){add();return;}
@@ -452,36 +461,23 @@ $('btnSortApply').addEventListener('click',()=>{
 
 ['dateFrom','dateTo'].forEach(id=>$(id).addEventListener('change',()=>{update();dates(true);}));
 
-function csvCell(v,text){
-  let s=String(v??'');
-  if(text&&/^[\s]*[=+@\-]/.test(s))s="'"+s;
-  return '"'+s.replace(/"/g,'""')+'"';
-}
-
-function csvNumber(v){return finite(v)?String(v).replace('.',','):'';}
-
-$('btnCsv').addEventListener('click',()=>{
+$('btnExcel').addEventListener('click',()=>{
   update();
   if(!validateAll())return;
-  const lines=[];
-  const push=arr=>lines.push(arr.join(';'));
-  push([csvCell('Период анализа',true),csvCell(fmtDate($('dateFrom').value),true),csvCell(fmtDate($('dateTo').value),true)]);
-  push([csvCell('Показатели не учитывают остальные расходы бизнеса. Для итогов нужны выручка, закупочная стоимость и рекламные расходы.',true)]);
-  push(['Категория',...metrics.map(m=>m[1]),'Статус','Рекомендация'].map(s=>csvCell(s,true)));
-  visible().forEach(c=>{
-    const r=calc(c).r;
-    push([csvCell(name(c),true),...metrics.map(([k])=>csvCell(csvNumber(r[k]),false)),csvCell(labels[status(r)],true),csvCell(recommendation(r),true)]);
+  const rows=visible().map(c=>({c,...calc(c).r}));
+  const data=[['Категория',...metrics.map(m=>m[1]),'Статус','Рекомендация']];
+  rows.forEach(x=>{
+    data.push([
+      name(x.c),
+      ...metrics.map(([k])=>finite(x[k])?x[k]:''),
+      labels[status(x)],
+      recommendation(x)
+    ]);
   });
-  push([csvCell('Маржинальность, ДРР и ROMI указаны числом в процентах; денежные суммы — в рублях.',true)]);
-  const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='kategorii_'+$('dateFrom').value+'_'+$('dateTo').value+'.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Категории');
+  XLSX.writeFile(wb,'kategorii_'+$('dateFrom').value+'_'+$('dateTo').value+'.xlsx');
 });
 
 add();
