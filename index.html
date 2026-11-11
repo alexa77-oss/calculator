@@ -1,3 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор для расчёта и сравнения показателей эффективности отдельных товаров и товарных категорий</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --green:#005032;
+  --line:#a9c9ba;
+  --soft:#f2f8f4;
+  --teal:#e6f7f4;
+  --teal-text:#0b6b60;
+  --red:#962828;
+  --redbg:#fbeeee;
+  --yellow:#865000;
+  --yellowbg:#fff5d9;
+  --text:#17221c;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:24px 16px 60px;background:white;color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1200px;margin:auto}
+
+.hero,.card{border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px;background:white}
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 160% at 100% 0%,var(--soft),transparent 60%),white}
+.hero::before{content:"";position:absolute;inset:-40% -10% auto auto;width:520px;height:520px;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:26px 26px;transform:perspective(600px) rotateX(52deg) rotateZ(-18deg);opacity:.55;
+  mask-image:radial-gradient(circle at 70% 30%,#000 0%,transparent 70%);
+  -webkit-mask-image:radial-gradient(circle at 70% 30%,#000 0%,transparent 70%)}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;position:relative;z-index:2}
+.hero h1{font-size:23px;line-height:1.25;color:var(--green);margin:0 0 15px;max-width:760px}
+.calc-logo{height:75px;width:auto;max-width:35%;object-fit:contain;flex-shrink:0}
+.hero p{margin:5px 0;position:relative;z-index:2}
+.meta{font-size:13px;color:var(--teal-text);background:var(--teal);padding:8px 12px;border-radius:8px;display:inline-block}
+.hint{font-size:12.5px;color:#44564b}
+h2{font-size:16px;margin:0 0 12px;color:var(--green)}
+
+.dates,.toolbar,.compare{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.dates{align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px}
+.toolbar,.compare{margin-bottom:12px}
+
+input,select,button{font:inherit}
+input[type=text],input[type=date],select{height:38px;padding:0 10px;border:1px solid var(--line);border-radius:7px;background:white;color:var(--text)}
+input:focus,select:focus,button:focus-visible{outline:2px solid #348961;outline-offset:2px}
+button,.link-btn{display:inline-flex;justify-content:center;align-items:center;min-height:38px;padding:7px 14px;border:1px solid var(--line);border-radius:7px;background:var(--soft);color:var(--green);font-weight:600;cursor:pointer;text-decoration:none}
+button:hover,.link-btn:hover{background:#e3f1e8}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.notice{padding:11px 14px;border-left:4px solid #87b49b;background:var(--soft);border-radius:6px;margin-top:12px}
+.error{color:var(--red);font-size:13px}
+.invalid{border-color:var(--red)!important;box-shadow:0 0 0 2px #96282820}
+
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+#calcTable{border-collapse:separate;border-spacing:0;min-width:100%;width:max-content}
+#calcTable th,#calcTable td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 9px;min-width:160px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#calcTable thead th{background:var(--soft);text-align:center}
+#calcTable .rowhead{position:sticky;left:0;z-index:2;min-width:215px;max-width:235px;white-space:normal;text-align:left;background:white;box-shadow:3px 0 6px #00000012}
+#calcTable thead .rowhead{z-index:3;background:var(--soft)}
+#calcTable .cell-input{padding:4px 6px}
+#calcTable input{width:145px;height:32px;text-align:right}
+#calcTable thead input{text-align:center;width:100%}
+
+.calc{font-weight:600}
+.pos{background:#e4f3e9!important;color:var(--green)!important}
+.neg{background:var(--redbg)!important;color:var(--red)!important}
+.zero{background:var(--yellowbg)!important;color:var(--yellow)!important}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.neutral{color:#53645a;background:#f1f3f2}
+.del{min-height:28px;padding:2px 9px;color:var(--red)}
+
+.summary{display:grid;gap:8px;margin:14px 0}
+.summary-item{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-bottom:18px}
+.total{padding:11px;border:1px solid var(--line);border-radius:8px}
+.total .label{font-size:12px;margin-bottom:5px}
+.total .value{font-weight:700;font-size:15px}
+
+.rec-table{width:100%;border-collapse:collapse;font-size:13px}
+.rec-table th,.rec-table td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}
+.rec-table th{background:var(--soft)}
+
+.formulas li{margin:6px 0}
+.legend{font-size:12px;display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.footer{text-align:center;margin:28px 0}
+#periodText{font-size:13px;color:var(--green)}
+[hidden]{display:none!important}
+
+@media(max-width:650px){
+  body{padding:12px 8px 35px}
+  .hero,.card{padding:14px}
+  .hero-top{flex-direction:column}
+  .calc-logo{max-width:100%;height:60px}
+  .hero h1{font-size:20px}
+  .field{width:100%}
+  .field input{width:100%}
+  #calcTable .rowhead{min-width:165px;max-width:165px}
+  select{max-width:100%}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="hero">
+  <div class="hero-top">
+    <h1>Калькулятор для расчёта и сравнения показателей эффективности отдельных товаров и товарных категорий</h1>
+    <img src="logo.png" alt="Логотип" class="calc-logo">
+  </div>
+  <p>Выручка, валовая прибыль, маржинальность, рекламные расходы, ДРР, CPO, прибыль после рекламы и ROMI.</p>
+  <p class="meta">Показатели рассчитываются за выбранный период и отражают его текущий срез. Это не окончательные данные для масштабирования.</p>
+</header>
+
+<section class="card">
+  <h2>Период анализа</h2>
+  <div class="dates">
+    <div class="field"><label for="dateFrom">Начало периода</label><input type="date" id="dateFrom"></div>
+    <div class="field"><label for="dateTo">Окончание периода</label><input type="date" id="dateTo"></div>
+  </div>
+  <div class="notice">Все данные должны относиться к одному периоду. Указывайте закупочную стоимость именно проданных товаров, а не всех закупок за период.</div>
+  <p class="error" id="dateError" role="status" hidden></p>
+</section>
+
+<section class="card">
+  <div class="toolbar">
+    <button id="btnCalc" type="button">Рассчитать</button>
+    <button id="btnExcel" type="button">Скачать Excel</button>
+    <button id="btnReset" type="button">Сбросить всё</button>
+  </div>
+  <p class="hint">Можно добавить до 20 категорий. Названия можно менять. Числа можно менять в любой момент — результаты обновляются автоматически.</p>
+
+  <div class="scroll">
+    <table id="calcTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <p class="error" id="inputError" role="status" hidden></p>
+  <p id="periodText"></p>
+
+  <div class="legend">
+    <span class="badge pos">Положительный результат</span>
+    <span class="badge zero">Нулевой результат</span>
+    <span class="badge neg">Отрицательный результат</span>
+  </div>
+  <p class="hint">Жёлтый означает ноль, а не «средний показатель». Цвета не учитывают аренду, налоги и другие расходы бизнеса.</p>
+</section>
+
+<section class="card">
+  <h2>Сравнение категорий</h2>
+
+  <div class="compare">
+    <label for="sortSelect">Сортировать по:</label>
+    <select id="sortSelect">
+      <option value="profit">Прибыль после рекламы</option>
+      <option value="romi">ROMI</option>
+      <option value="margin">Маржинальность</option>
+      <option value="drr">ДРР</option>
+      <option value="cpo">CPO</option>
+      <option value="avgcheck">Средний чек</option>
+      <option value="gross">Валовая прибыль</option>
+      <option value="revenue">Выручка</option>
+    </select>
+    <label><input type="checkbox" id="ascChk"> По возрастанию</label>
+    <button id="btnSortApply" type="button">Применить сортировку</button>
+    <button id="btnResetOrder" type="button">Вернуть порядок добавления</button>
+  </div>
+
+  <p>Высокая выручка не гарантирует прибыль. Перед увеличением бюджета сравните прибыль после рекламы, ROMI и ДРР: если ДРР равен маржинальности, прибыль после рекламы равна нулю; если выше — результат отрицательный.</p>
+
+  <div id="summary" class="summary"></div>
+
+  <h2>Итоги по категориям</h2>
+  <p class="hint" id="totalsNote"></p>
+  <div id="totals" class="totals"></div>
+
+  <h2>Статусы и рекомендации</h2>
+  <div class="scroll" id="recsWrap"></div>
+</section>
+
+<section class="card formulas">
+  <h2>Как считаются показатели</h2>
+  <ul>
+    <li><b>Валовая прибыль</b> = выручка − закупочная стоимость проданных товаров.</li>
+    <li><b>Маржинальность</b> = валовая прибыль / выручка × 100%.</li>
+    <li><b>Средний чек</b> = выручка / количество оплаченных заказов.</li>
+    <li><b>CPO</b> = рекламные расходы / количество оплаченных заказов.</li>
+    <li><b>ДРР</b> = рекламные расходы / выручка × 100%.</li>
+    <li><b>Прибыль после рекламы</b> = валовая прибыль − рекламные расходы. Это не чистая прибыль бизнеса: аренда, зарплаты, налоги, комиссии, логистика и другие расходы здесь не учтены.</li>
+    <li><b>ROMI</b> = прибыль после рекламы / рекламные расходы × 100%. Показывает окупаемость рекламных расходов в рамках этой модели.</li>
+  </ul>
+  <div class="notice">При нулевом знаменателе показатель не рассчитывается и отображается «—». Для оценки рекламы используйте выручку и заказы, относящиеся к этой рекламе. Если указаны все продажи категории, CPO и ROMI характеризуют соотношение общего результата и рекламных расходов, но сами по себе не доказывают эффективность рекламы.</div>
+  <p>Оплаченные заказы относите к категориям одинаковым способом. Если один заказ содержит товары нескольких категорий, суммы заказов по категориям могут пересекаться.</p>
+</section>
+
+<div class="footer">
+  <a class="link-btn" href="before-launch.html">Калькулятор для товаров без статистики</a>
+</div>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+
+const $=id=>document.getElementById(id);
+const MAX=20;
+const inputs=['orders','revenue','cost','ads'];
+const metrics=[
+  ['orders','Количество оплаченных заказов'],
+  ['revenue','Выручка, ₽'],
+  ['cost','Закупочная стоимость проданных товаров, ₽'],
+  ['ads','Рекламные расходы, ₽'],
+  ['gross','Валовая прибыль, ₽'],
+  ['margin','Маржинальность, %'],
+  ['avgcheck','Средний чек, ₽'],
+  ['cpo','CPO, ₽'],
+  ['drr','ДРР, %'],
+  ['profit','Прибыль после рекламы, ₽'],
+  ['romi','ROMI, %']
+];
+const labels={
+  positive:'Прибыль после рекламы',
+  zero:'Нулевой результат после рекламы',
+  negative:'Убыток после рекламы',
+  grossNegative:'Убыток до рекламы',
+  missing:'Недостаточно данных'
+};
+
+let categories=[],order=[],seq=0;
+
+const finite=v=>typeof v==='number'&&Number.isFinite(v);
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const numberFmt=new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+const percentFmt=new Intl.NumberFormat('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1});
+
+function format(key,v){
+  if(!finite(v))return '—';
+  if(['margin','drr','romi'].includes(key))return percentFmt.format(Object.is(v,-0)?0:v)+'%';
+  if(key==='orders')return String(v);
+  return numberFmt.format(Object.is(v,-0)?0:v)+' ₽';
+}
+
+function name(c){return c.name.trim()||'Категория '+(categories.indexOf(c)+1);}
+
+function parse(raw,key){
+  const s=String(raw).trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
+  if(!s)return {value:null,error:''};
+  if(!/^\d+(?:\.\d*)?$/.test(s))return {value:null,error:'Введите неотрицательное число.'};
+  const n=Number(s);
+  if(!Number.isFinite(n)||n>Number.MAX_SAFE_INTEGER/100)return {value:null,error:'Слишком большое число.'};
+  if(key==='orders'&&!Number.isSafeInteger(n))return {value:null,error:'Количество заказов должно быть целым числом.'};
+  if(key!=='orders'&&s.includes('.')&&s.split('.')[1].length>2)return {value:null,error:'Укажите не больше двух знаков после запятой.'};
+  return {value:n,error:''};
+}
+
+function data(c){
+  const d={},errors={};
+  inputs.forEach(k=>{
+    const p=parse(c.raw[k],k);
+    d[k]=p.value;
+    if(p.error)errors[k]=p.error;
+  });
+  return {d,errors};
+}
+
+function calc(c){
+  const {d,errors}=data(c),r={...d};
+  r.gross=finite(d.revenue)&&finite(d.cost)?d.revenue-d.cost:null;
+  r.margin=finite(r.gross)&&d.revenue>0?r.gross/d.revenue*100:null;
+  r.avgcheck=finite(d.revenue)&&d.orders>0?d.revenue/d.orders:null;
+  r.cpo=finite(d.ads)&&d.orders>0?d.ads/d.orders:null;
+  r.drr=finite(d.ads)&&d.revenue>0?d.ads/d.revenue*100:null;
+  r.profit=finite(r.gross)&&finite(d.ads)?r.gross-d.ads:null;
+  r.romi=finite(r.profit)&&d.ads>0?r.profit/d.ads*100:null;
+  Object.keys(r).forEach(k=>{if(!finite(r[k]))r[k]=null;});
+  return {r,errors};
+}
+
+function status(r){
+  if(!finite(r.profit))return 'missing';
+  if(r.gross<-.005)return 'grossNegative';
+  if(r.profit<-.005)return 'negative';
+  if(r.profit>=.005)return 'positive';
+  return 'zero';
+}
+
+function statusClass(s){
+  return s==='positive'?'pos':s==='zero'?'zero':s==='missing'?'neutral':'neg';
+}
+
+function color(k,r){
+  if(!finite(r[k]))return '';
+  if(k==='drr'){
+    if(!finite(r.margin)||!finite(r.profit))return '';
+    return statusClass(status(r));
+  }
+  if(k==='profit'||k==='romi'){
+    if(!finite(r.profit))return '';
+    return statusClass(status(r));
+  }
+  return '';
+}
+
+function recommendation(r){
+  switch(status(r)){
+    case 'grossNegative':return 'Выручка не покрывает закупочную стоимость проданных товаров. Проверьте цену продажи, себестоимость и исходные данные.';
+    case 'negative':return 'Рекламные расходы превышают валовую прибыль. Проверьте расходы на рекламу, цену продажи и себестоимость.';
+    case 'zero':return 'Выручка покрывает закупочную стоимость и рекламу, но прибыли после рекламы нет. Другие расходы бизнеса не учтены.';
+    case 'positive':return 'Результат после рекламы положительный. Перед увеличением бюджета проверьте остальные расходы, спрос, возвраты, конверсию и наличие товара.';
+    default:return 'Укажите выручку, закупочную стоимость и рекламные расходы. Для среднего чека и CPO также нужно количество заказов.';
+  }
+}
+
+function add(){
+  if(categories.length>=MAX)return;
+  const c={id:++seq,name:'',raw:{orders:'',revenue:'',cost:'',ads:''}};
+  categories.push(c);
+  order.push(c.id);
+  build();
+}
+
+function visible(){return order.map(id=>categories.find(c=>c.id===id)).filter(Boolean);}
+
+function build(){
+  const cats=visible();
+  $('tableHead').innerHTML='<tr><th class="rowhead" scope="col">Показатель</th>'+cats.map(c=>'<th scope="col"><input type="text" data-name="'+c.id+'" value="'+esc(c.name)+'" placeholder="Название категории" aria-label="Название '+esc(name(c))+'"></th>').join('')+'<th><button id="btnAdd" type="button" '+(categories.length>=MAX?'disabled':'')+'>+ Добавить категорию</button></th></tr>';
+  $('tableBody').innerHTML=metrics.map(([k,label])=>'<tr><th scope="row" class="rowhead">'+label+'</th>'+cats.map(c=>inputs.includes(k)?'<td class="cell-input"><input type="text" inputmode="'+(k==='orders'?'numeric':'decimal')+'" autocomplete="off" spellcheck="false" data-id="'+c.id+'" data-key="'+k+'" value="'+esc(c.raw[k])+'" aria-label="'+esc(name(c)+': '+label)+'"></td>':'<td class="calc" data-result="'+c.id+'-'+k+'">—</td>').join('')+'<td></td></tr>').join('')+'<tr><th scope="row" class="rowhead">Статус</th>'+cats.map(c=>'<td data-status="'+c.id+'"></td>').join('')+'<td></td></tr><tr><th scope="row" class="rowhead">Удалить</th>'+cats.map(c=>'<td><button class="del" type="button" data-delete="'+c.id+'" aria-label="Удалить '+esc(name(c))+'">✕</button></td>').join('')+'<td></td></tr>';
+  update();
+}
+
+function dates(show){
+  const a=$('dateFrom').value,b=$('dateTo').value;
+  const ok=!!a&&!!b&&a<=b;
+  $('dateError').hidden=ok||!show;
+  $('dateError').textContent='Укажите обе даты. Дата начала не должна быть позже даты окончания.';
+  $('dateFrom').classList.toggle('invalid',!!show&&!ok);
+  $('dateTo').classList.toggle('invalid',!!show&&!ok);
+  $('periodText').textContent=ok?'Период анализа: '+fmtDate(a)+' — '+fmtDate(b):'Для фиксации периода анализа укажите корректные даты.';
+  return ok;
+}
+
+function fmtDate(v){return v?v.split('-').reverse().join('.'):'—';}
+
+function update(){
+  let errorCount=0;
+  const rows=visible().map(c=>({c,...calc(c)}));
+  rows.forEach(x=>{
+    inputs.forEach(k=>{
+      const el=$('calcTable').querySelector('[data-id="'+x.c.id+'"][data-key="'+k+'"]');
+      if(el){
+        const invalid=!!x.errors[k];
+        el.classList.toggle('invalid',invalid);
+        el.setAttribute('aria-invalid',String(invalid));
+        el.title=x.errors[k]||'';
+        if(invalid)errorCount++;
+      }
+    });
+    metrics.filter(([k])=>!inputs.includes(k)).forEach(([k])=>{
+      const el=$('calcTable').querySelector('[data-result="'+x.c.id+'-'+k+'"]');
+      if(el){
+        el.textContent=format(k,x.r[k]);
+        el.className='calc '+color(k,x.r);
+      }
+    });
+    const s=status(x.r),el=$('calcTable').querySelector('[data-status="'+x.c.id+'"]');
+    if(el)el.innerHTML='<span class="badge '+statusClass(s)+'">'+labels[s]+'</span>';
+  });
+  $('inputError').hidden=!errorCount;
+  $('inputError').textContent='Исправьте выделенные поля: отрицательные числа недопустимы, заказы — целые числа, денежные суммы — не больше двух знаков после запятой. Некорректные значения не используются в расчёте.';
+  const complete=rows.filter(x=>status(x.r)!=='missing');
+  $('summary').innerHTML=['profit','romi'].map(k=>{
+    const eligible=complete.filter(x=>finite(x.r[k]));
+    if(!eligible.length)return '<div class="summary-item">'+(k==='profit'?'Максимальная прибыль после рекламы':'Максимальный ROMI')+': —</div>';
+    const top=eligible.reduce((a,b)=>b.r[k]>a.r[k]?b:a);
+    return '<div class="summary-item '+color(k,top.r)+'">'+(k==='profit'?'Максимальная прибыль после рекламы':'Максимальный ROMI')+': <b>'+esc(name(top.c))+'</b> — '+format(k,top.r[k])+'</div>';
+  }).join('');
+  $('totalsNote').textContent=complete.length?'В итогах учтено категорий: '+complete.length+' из '+rows.length+'. Категории без выручки, закупочной стоимости или рекламных расходов исключены.':'Для итогов укажите выручку, закупочную стоимость и рекламные расходы хотя бы одной категории.';
+  const t={revenue:null,cost:null,ads:null};
+  if(complete.length){
+    Object.keys(t).forEach(k=>t[k]=complete.reduce((s,x)=>s+x.r[k],0));
+  }
+  const totals=calc({raw:{orders:'',revenue:finite(t.revenue)?String(t.revenue.toFixed(2)):'',cost:finite(t.cost)?String(t.cost.toFixed(2)):'',ads:finite(t.ads)?String(t.ads.toFixed(2)):''}}).r;
+  $('totals').innerHTML=[['revenue','Общая выручка'],['gross','Общая валовая прибыль'],['ads','Общие рекламные расходы'],['profit','Общая прибыль после рекламы'],['romi','Общий ROMI'],['drr','Общий ДРР']].map(([k,label])=>'<div class="total '+color(k,totals)+'"><div class="label">'+label+'</div><div class="value">'+format(k,totals[k])+'</div></div>').join('');
+  $('recsWrap').innerHTML='<table class="rec-table"><thead><tr><th>Категория</th><th>Статус</th><th>Рекомендация</th></tr></thead><tbody>'+rows.map(x=>'<tr><th scope="row">'+esc(name(x.c))+'</th><td><span class="badge '+statusClass(status(x.r))+'">'+labels[status(x.r)]+'</span></td><td>'+recommendation(x.r)+'</td></tr>').join('')+'</tbody></table>';
+  dates(false);
+}
+
+function validateAll(){
+  const validDates=dates(true);
+  let first=null;
+  document.querySelectorAll('#calcTable [data-key]').forEach(el=>{
+    if(el.getAttribute('aria-invalid')==='true'&&!first)first=el;
+  });
+  if(first)first.focus();
+  return validDates&&!first;
+}
+
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.hasAttribute('data-name')){
+    const c=categories.find(c=>c.id===Number(el.dataset.name));
+    if(c)c.name=el.value;
+    update();
+    return;
+  }
+  if(el.dataset.key){
+    const c=categories.find(c=>c.id===Number(el.dataset.id));
+    if(c){
+      c.raw[el.dataset.key]=el.value;
+      update();
+    }
+  }
+});
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b)return;
+  if(b.id==='btnAdd'){add();return;}
+  if(b.hasAttribute('data-delete')){
+    const id=Number(b.dataset.delete);
+    if(!confirm('Удалить категорию «'+name(categories.find(c=>c.id===id))+'» и все её данные?'))return;
+    categories=categories.filter(c=>c.id!==id);
+    order=order.filter(x=>x!==id);
+    build();
+  }
+});
+
+$('btnCalc').addEventListener('click',()=>{update();validateAll();});
+$('btnReset').addEventListener('click',()=>{
+  if(!confirm('Удалить все введённые данные и даты?'))return;
+  categories=[];order=[];seq=0;
+  $('dateFrom').value='';$('dateTo').value='';
+  $('sortSelect').value='profit';$('ascChk').checked=false;
+  add();
+});
+$('btnResetOrder').addEventListener('click',()=>{order=categories.map(c=>c.id);build();});
+$('sortSelect').addEventListener('change',()=>{$('ascChk').checked=['drr','cpo'].includes($('sortSelect').value);});
 $('btnSortApply').addEventListener('click',()=>{
   const key=$('sortSelect').value,asc=$('ascChk').checked;
   const list=visible().map(c=>({c,v:calc(c).r[key]}));
@@ -10,3 +453,31 @@ $('btnSortApply').addEventListener('click',()=>{
   order=list.map(x=>x.c.id);
   build();
 });
+
+['dateFrom','dateTo'].forEach(id=>$(id).addEventListener('change',()=>{update();dates(true);}));
+
+$('btnExcel').addEventListener('click',()=>{
+  update();
+  if(!validateAll())return;
+  const rows=visible().map(c=>({c,...calc(c).r}));
+  const data=[['Категория',...metrics.map(m=>m[1]),'Статус','Рекомендация']];
+  rows.forEach(x=>{
+    data.push([
+      name(x.c),
+      ...metrics.map(([k])=>finite(x[k])?x[k]:''),
+      labels[status(x)],
+      recommendation(x)
+    ]);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Категории');
+  XLSX.writeFile(wb,'kategorii_'+$('dateFrom').value+'_'+$('dateTo').value+'.xlsx');
+});
+
+add();
+})();
+</script>
+
+</body>
+</html>
