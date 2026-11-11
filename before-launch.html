@@ -26,6 +26,7 @@
     font-size:14px; line-height:1.45;}
   .wrap{max-width:1320px; margin:0 auto;}
 
+  /* ШАПКА С ЛОГОТИПОМ */
   header.hero{position:relative; overflow:hidden; border:1px solid var(--border); border-radius:16px;
     padding:24px 26px 20px; margin-bottom:20px;
     background:linear-gradient(135deg, rgba(6,182,212,0.07), transparent 60%), #fff;}
@@ -37,9 +38,54 @@
     opacity:.32;
     mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
     -webkit-mask-image:radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);}
-  header.hero h1{margin:0 0 8px; font-size:22px; color:var(--text); position:relative;}
-  header.hero p{margin:0 0 6px; max-width:860px; color:var(--text); position:relative;}
-  .meta{font-size:12.5px; color:var(--muted); position:relative;}
+  
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; 
+    position: relative;
+    z-index: 2;
+    margin-bottom: 8px;
+    gap: 20px;
+  }
+  
+  .hero-title {
+    margin: 0;
+    font-size: 22px;
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1.2;
+    flex: 1;
+    max-width: 750px;
+  }
+
+  .calc-logo {
+    height: 75px;
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+    margin-top: 8px;
+  }
+
+  .hero-text p { margin: 0 0 6px; max-width: 860px; color: var(--text); font-weight: 500; position: relative; z-index: 2;}
+  .meta { font-size: 12.5px; color: var(--muted); font-weight: 500; position: relative; z-index: 2; margin-top: 6px;}
+
+  @media (max-width: 768px) {
+    .hero-top {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .calc-logo {
+      height: 60px;
+      margin-top: 0;
+      margin-left: 0;
+    }
+    .hero-title {
+      font-size: 18px;
+    }
+  }
 
   section.card{border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;
     margin-bottom:16px; background:#fff;}
@@ -171,9 +217,15 @@
 <div class="wrap">
 
   <header class="hero">
-    <h1>Калькулятор сравнения категорий до запуска рекламы</h1>
-    <p>Для товаров и категорий, у которых ещё нет статистики продаж. Сравнивает плановую экономику: переменные расходы, маржу, маржинальность, CPO, ДРР, прибыль после рекламы и окупаемость рекламы — по одинаковым показателям.</p>
-    <p class="meta">Калькулятор сравнивает экономику при заданных допущениях. Он не подтверждает спрос и не определяет, какую категорию запускать.</p>
+    <div class="hero-top">
+      <h1 class="hero-title">Калькулятор сравнения категорий до запуска рекламы</h1>
+      <img src="logo.png" alt="" class="calc-logo">
+    </div>
+    
+    <div class="hero-text">
+      <p>Для товаров и категорий, у которых ещё нет статистики продаж. Сравнивает плановую экономику: переменные расходы, маржу, маржинальность, CPO, ДРР, прибыль после рекламы и окупаемость рекламы — по одинаковым показателям.</p>
+      <p class="meta">Калькулятор сравнивает экономику при заданных допущениях. Он не подтверждает спрос и не определяет, какую категорию запускать.</p>
+    </div>
   </header>
 
   <section class="card">
