@@ -42,6 +42,7 @@ margin-right:60px;
 margin:0 0 24px;
 font-size:16px;
 }
+.intro-mobile{display:none}
 .card{
 border:1px solid #cfe0d7;
 border-radius:12px;
@@ -225,7 +226,9 @@ margin-bottom:10px;
 height:64px;
 margin-right:0;
 }
-.intro{
+.intro-desktop{display:none}
+.intro-mobile{
+display:block;
 font-size:15px;
 margin-bottom:18px;
 }
@@ -296,8 +299,12 @@ padding:10px;
 <img src="logo.png" alt="Логотип" class="logo">
 </div>
 
-<p class="intro">
+<p class="intro intro-desktop">
 Подходит для товаров с большим количеством категорий: электроника, бытовая техника, косметика, товары для дома, автозапчасти, стройматериалы, зоотовары, продукты питания.<br><br>
+Внесите данные о продажах за выбранный период. Калькулятор сравнит категории по выручке, валовой прибыли, маржинальности и среднему чеку.
+</p>
+
+<p class="intro intro-mobile">
 Внесите данные о продажах за выбранный период. Калькулятор сравнит категории по выручке, валовой прибыли, маржинальности и среднему чеку.
 </p>
 
@@ -374,9 +381,9 @@ padding:10px;
 <label for="sortSelect">Сортировать по:</label>
 
 <select id="sortSelect">
+<option value="revenue">Выручка</option>
 <option value="gross">Валовая прибыль</option>
 <option value="margin">Маржинальность</option>
-<option value="revenue">Выручка</option>
 <option value="orders">Количество оплаченных заказов</option>
 <option value="avgcheck">Средний чек</option>
 <option value="profitExp" hidden>Прибыль с учётом доп. расходов</option>
@@ -802,7 +809,7 @@ var sortOption=el('sortSelect').querySelector('option[value="profitExp"]');
 sortOption.hidden=!showProfit;
 
 if(!showProfit&&el('sortSelect').value==='profitExp'){
-el('sortSelect').value='gross';
+el('sortSelect').value='revenue';
 order=cats.map(function(cat){
 return cat.id;
 });
