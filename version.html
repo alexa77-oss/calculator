@@ -575,6 +575,7 @@ var tr=document.createElement('tr');
 
 var nameCell=document.createElement('td');
 nameCell.className='cat-cell';
+nameCell.setAttribute('data-name-id',cat.id);
 
 var nameInput=document.createElement('input');
 nameInput.type='text';
@@ -587,14 +588,6 @@ renderKeyMetrics();
 };
 
 nameCell.appendChild(nameInput);
-
-if(expensesVisible&&!hasExpenses(cat)){
-var note=document.createElement('div');
-note.className='exp-note';
-note.textContent='Расходы не указаны';
-nameCell.appendChild(note);
-}
-
 tr.appendChild(nameCell);
 
 BASE_FIELDS.forEach(function(field){
@@ -659,6 +652,31 @@ body.appendChild(tr);
 renderResults();
 }
 
+function updateExpenseNotes(){
+var body=el('tableBody');
+
+cats.forEach(function(cat){
+var nameCell=body.querySelector('[data-name-id="'+cat.id+'"]');
+
+if(!nameCell){
+return;
+}
+
+var oldNote=nameCell.querySelector('.exp-note');
+
+if(oldNote){
+oldNote.remove();
+}
+
+if(expensesVisible&&!hasExpenses(cat)){
+var note=document.createElement('div');
+note.className='exp-note';
+note.textContent='Расходы не указаны';
+nameCell.appendChild(note);
+}
+});
+}
+
 function renderResults(){
 var body=el('tableBody');
 
@@ -690,6 +708,7 @@ profitCell.className='calc'+valueClass('profitExp',cat.result.profitExp);
 }
 });
 
+updateExpenseNotes();
 updateExpenseVisibility();
 renderKeyMetrics();
 renderTotals();
