@@ -7,103 +7,132 @@
 <style>
   :root{
     --teal:#0d9488; --teal-dark:#0f766e; --teal-light:#ccfbf1; --teal-hover:#f0fdfa;
-    --border:#e2e8f0; --text:#1e293b; --muted:#64748b; --danger:#dc2626; --bg:#ffffff;
-    --calc-bg:#f0f6ff; --calc-head:#dbeafe; --calc-text:#1e3a8a; --calc-border:#bfdbfe;
+    --border:#e2e8f0; --text:#0f172a; --muted:#475569; --danger:#dc2626; --bg:#ffffff;
+    --calc-bg:#eef4ff; --calc-head:#dbeafe; --calc-text:#1e3a8a; --calc-border:#bfdbfe;
+    --input-text:#0f172a;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45;padding:24px 16px 60px;}
-  .wrap{max-width:1280px;margin:0 auto;}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;
+    padding:24px 16px 60px;font-size:16px;
+  }
+  .wrap{max-width:1280px;margin:0 auto;width:100%;}
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:8px 8px 24px;flex-wrap:nowrap;}
   .header-text{flex:1 1 auto;min-width:0;}
-  h1{font-size:26px;line-height:1.25;margin:0 0 10px;font-weight:700;}
-  .header-text p{margin:0;color:var(--muted);font-size:15px;max-width:760px;}
+  h1{font-size:28px;line-height:1.25;margin:0 0 10px;font-weight:700;color:#0f172a;overflow-wrap:break-word;}
+  .header-text p{margin:0;color:#334155;font-size:16px;max-width:760px;overflow-wrap:break-word;}
   .logo{flex:0 0 auto;max-height:72px;max-width:180px;object-fit:contain;margin:4px 12px 0 0;}
-  .logo-fallback{flex:0 0 auto;font-size:14px;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:18px 22px;margin:4px 12px 0 0;}
-  button, .btn{font-family:inherit;font-size:14px;cursor:pointer;border-radius:8px;padding:9px 14px;transition:background-color .15s ease, box-shadow .15s ease, border-color .15s ease;white-space:nowrap;}
-  .btn-outline{background:#fff;color:var(--teal);border:1.5px solid var(--teal);}
+  .logo-fallback{flex:0 0 auto;font-size:15px;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:18px 22px;margin:4px 12px 0 0;}
+
+  button, .btn{font-family:inherit;font-size:15px;cursor:pointer;border-radius:8px;padding:10px 16px;transition:background-color .15s ease, box-shadow .15s ease, border-color .15s ease;white-space:nowrap;font-weight:600;max-width:100%;}
+  .btn-outline{background:#fff;color:var(--teal-dark);border:1.5px solid var(--teal);}
   .btn-outline:hover,.btn-outline:focus-visible{background:var(--teal-hover);box-shadow:0 0 0 3px rgba(13,148,136,.18);outline:none;}
   .btn-outline:active{background:var(--teal-light);box-shadow:0 0 0 4px rgba(13,148,136,.25);}
   .btn-primary{background:var(--teal);color:#fff;border:1.5px solid var(--teal);}
   .btn-primary:hover,.btn-primary:focus-visible{background:var(--teal-dark);border-color:var(--teal-dark);box-shadow:0 0 0 3px rgba(13,148,136,.22);outline:none;}
   .btn-primary:active{box-shadow:0 0 0 5px rgba(13,148,136,.28);}
-  .btn-danger-outline{background:#fff;color:var(--danger);border:1.5px solid var(--danger);padding:5px 9px;font-size:13px;line-height:1;}
+  .btn-danger-outline{background:#fff;color:var(--danger);border:1.5px solid var(--danger);padding:5px 9px;font-size:14px;line-height:1;font-weight:700;}
   .btn-danger-outline:hover,.btn-danger-outline:focus-visible{background:#fef2f2;box-shadow:0 0 0 3px rgba(220,38,38,.15);outline:none;}
+
   .period-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:0 8px 18px;}
-  .field{display:flex;flex-direction:column;gap:5px;min-width:0;}
-  .field label{font-size:13px;color:var(--muted);}
-  .field input[type="date"]{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);min-width:150px;}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0;max-width:100%;}
+  .field label{font-size:14px;color:#334155;font-weight:600;}
+  .field input[type="date"]{font-family:inherit;font-size:15px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#0f172a;min-width:160px;font-weight:500;max-width:100%;}
   .field input[type="date"]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+
   .toolbar-actions{display:flex;flex-wrap:wrap;gap:10px;padding:0 8px 12px;align-items:center;}
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:0 8px 18px;align-items:center;}
-  .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:12px;background:#fff;}
-  table{border-collapse:collapse;width:100%;min-width:820px;font-size:14px;}
-  table.with-extra{min-width:1180px;}
-  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle;}
-  thead th{background:#f8fafc;font-weight:600;font-size:13px;color:#334155;white-space:nowrap;position:sticky;top:0;}
+
+  .table-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #cbd5e1;border-radius:12px;background:#fff;}
+  table{border-collapse:collapse;width:100%;min-width:860px;font-size:15px;}
+  table.with-extra{min-width:1240px;}
+  th,td{padding:11px 12px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle;color:#0f172a;}
+  thead th{background:#f1f5f9;font-weight:700;font-size:14px;color:#0f172a;white-space:nowrap;position:sticky;top:0;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:#fafefe;}
   td.num, th.num{text-align:right;white-space:nowrap;}
 
-  /* Расчётные колонки — лёгкая подсветка, без резкого контраста */
-  td.calc{background:var(--calc-bg);color:var(--calc-text);}
+  td.calc{background:var(--calc-bg);color:var(--calc-text);font-weight:700;font-size:15px;}
   th.calc-head{background:var(--calc-head) !important;color:var(--calc-text) !important;}
 
-  .cell-input{width:100%;min-width:90px;font-family:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);text-align:right;}
+  .cell-input{width:100%;min-width:95px;font-family:inherit;font-size:15px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:var(--input-text);text-align:right;font-weight:600;}
   .cell-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
   .cell-input.invalid{border-color:var(--danger);background:#fef2f2;box-shadow:0 0 0 2px rgba(220,38,38,.15);}
-  .cell-input.text-input{text-align:left;min-width:150px;}
+  .cell-input.text-input{text-align:left;min-width:160px;font-weight:600;}
   .row-error td{background:#fff5f5;}
-  .error-msg{color:var(--danger);font-size:12px;margin-top:3px;display:none;}
+  .error-msg{color:var(--danger);font-size:13px;margin-top:3px;display:none;font-weight:600;}
   .row-error .error-msg{display:block;}
-  .muted{color:var(--muted);}
-  .footnote{margin:12px 8px 0;padding:10px 12px;background:#f0fdfa;border:1px solid var(--teal-light);border-radius:8px;font-size:13px;color:#115e59;display:none;}
+  .muted{color:#64748b;}
+
+  .footnote{margin:12px 8px 0;padding:11px 14px;background:#f0fdfa;border:1px solid var(--teal-light);border-radius:8px;font-size:14px;color:#115e59;display:none;}
   .footnote.show{display:block;}
-  .section{margin:24px 8px 0;padding:18px;border:1px solid var(--border);border-radius:12px;background:#fff;}
-  .section h2{font-size:18px;margin:0 0 14px;font-weight:700;}
-  .section h3{font-size:15px;margin:16px 0 10px;font-weight:600;color:#334155;}
+
+  .section{margin:24px 8px 0;padding:18px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;max-width:100%;}
+  .section h2{font-size:20px;margin:0 0 14px;font-weight:700;color:#0f172a;}
+  .section h3{font-size:17px;margin:18px 0 12px;font-weight:700;color:#0f172a;}
   .section h3:first-child{margin-top:0;}
+
   .sort-block{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px;}
-  .sort-block .field select, .filter-block .field select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);min-width:200px;}
+  .sort-block .field select, .filter-block .field select{font-family:inherit;font-size:15px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#0f172a;min-width:210px;max-width:100%;font-weight:500;}
   .sort-block .field select:focus, .filter-block .field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
-  .check-field{display:flex;align-items:center;gap:8px;padding-bottom:9px;}
-  .check-field input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);}
-  .check-field label{font-size:14px;color:var(--text);}
+  .check-field{display:flex;align-items:center;gap:8px;padding-bottom:10px;}
+  .check-field input[type="checkbox"]{width:17px;height:17px;accent-color:var(--teal);}
+  .check-field label{font-size:15px;color:#0f172a;font-weight:600;}
   .filter-block{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;}
-  .filter-block .field select{min-width:240px;}
-  .leaders{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
-  .leaders h3{margin:0 0 10px;font-size:15px;font-weight:600;color:#334155;}
-  .leaders-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;}
-  .leader-item{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;font-size:14px;}
-  .leader-item .metric{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;}
-  .leader-item .name{font-weight:600;}
-  .leader-item .val{color:var(--muted);white-space:nowrap;}
-  .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
-  .total-item{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;}
-  .total-item .lbl{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;}
-  .total-item .val{font-size:16px;font-weight:600;}
-  .formulas{font-size:13px;color:#334155;}
-  .formulas p{margin:0 0 8px;}
+  .filter-block .field select{min-width:250px;}
+
+  .leaders{margin-top:18px;padding-top:16px;border-top:1px solid #e2e8f0;}
+  .leaders h3{margin:0 0 10px;font-size:17px;font-weight:700;color:#0f172a;}
+  .leaders-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+  .leader-item{border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;background:#fff;font-size:16px;overflow-wrap:break-word;}
+  .leader-item .metric{font-size:13px;color:#475569;display:block;margin-bottom:4px;font-weight:600;}
+  .leader-item .name{font-weight:700;color:#0f172a;font-size:16px;}
+  .leader-item .val{color:var(--calc-text);white-space:nowrap;font-weight:700;font-size:16px;}
+
+  /* === ИТОГИ — крупнее === */
+  .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .total-item{border:1px solid #cbd5e1;border-radius:10px;padding:14px 16px;background:#fff;overflow-wrap:break-word;}
+  .total-item .lbl{font-size:15px;color:#334155;display:block;margin-bottom:6px;font-weight:700;}
+  .total-item .val{font-size:22px;font-weight:800;color:var(--calc-text);line-height:1.2;overflow-wrap:break-word;word-break:break-word;}
+
+  .formulas{font-size:15px;color:#0f172a;}
+  .formulas p{margin:0 0 9px;overflow-wrap:break-word;}
   .formulas p:last-child{margin-bottom:0;}
-  .formulas .note{color:var(--muted);}
+  .formulas .note{color:#475569;font-size:14px;}
+
   .hidden{display:none !important;}
+
   @media (max-width:860px){
     header{flex-wrap:wrap;gap:14px;padding-bottom:18px;}
     .logo{order:2;max-height:48px;max-width:130px;margin:0 0 0 8px;}
     .logo-fallback{order:2;margin:0 0 0 8px;padding:10px 14px;font-size:12px;}
     .header-text{order:1;flex-basis:100%;}
-    h1{font-size:20px;} .header-text p{font-size:14px;}
+    h1{font-size:22px;} .header-text p{font-size:15px;}
+    .totals-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+    .total-item .val{font-size:20px;}
   }
   @media (max-width:560px){
-    body{padding:16px 10px 40px;} h1{font-size:18px;}
+    body{padding:16px 10px 40px;font-size:15px;}
+    h1{font-size:20px;}
     .period-row{flex-direction:column;align-items:stretch;}
     .field input[type="date"]{min-width:0;width:100%;}
     .toolbar-actions, .toolbar{gap:8px;}
-    .toolbar-actions button, .toolbar button{flex:1 1 auto;min-width:140px;}
-    .section{padding:14px 12px;}
+    .toolbar-actions button, .toolbar button{flex:1 1 auto;min-width:140px;white-space:normal;}
+    .section{padding:14px 12px;margin:20px 0 0;}
     .sort-block, .filter-block{flex-direction:column;align-items:stretch;}
     .sort-block .field select, .filter-block .field select{width:100%;min-width:0;}
     .sort-block button, .filter-block button{width:100%;}
+    .totals-grid{grid-template-columns:1fr 1fr;}
+    .total-item{padding:12px 12px;}
+    .total-item .lbl{font-size:14px;}
+    .total-item .val{font-size:19px;}
+    .leaders-list{grid-template-columns:1fr;}
+  }
+  @media (max-width:380px){
+    .totals-grid{grid-template-columns:1fr;}
+    .total-item .val{font-size:18px;}
   }
 </style>
 </head>
@@ -226,7 +255,7 @@
 (function(){
   "use strict";
   var MAX_CATEGORIES = 50;
-  var STORAGE_KEY = "calc_auto_parts_v5";
+  var STORAGE_KEY = "calc_auto_parts_v7";
   var rows = [];
   var viewOrder = null;
   var currentFilter = "all";
@@ -270,10 +299,26 @@
     if(Math.floor(r.value)!==r.value) return {ok:false,value:null,empty:false,fractional:true};
     return r;
   }
+  function parseDateLoose(raw){
+    if (raw===null||raw===undefined) return null;
+    var s=String(raw).trim(); if(!s) return null;
+    var m1=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m1) return m1[1]+"-"+m1[2]+"-"+m1[3];
+    var m2=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/);
+    if(m2){var d=("0"+m2[1]).slice(-2),mo=("0"+m2[2]).slice(-2),y=m2[3];return y+"-"+mo+"-"+d;}
+    var n=parseFloat(s);
+    if(isFinite(n) && n>20000 && n<90000){
+      var ms=Math.round((n-25569)*86400*1000);
+      var dt=new Date(ms);
+      if(!isNaN(dt.getTime())) return dt.getUTCFullYear()+"-"+("0"+(dt.getUTCMonth()+1)).slice(-2)+"-"+("0"+dt.getUTCDate()).slice(-2);
+    }
+    return null;
+  }
   function fmtMoney(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});}
   function fmtPct(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" %";}
   function fmtInt(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU");}
   function numOrNull(v){return (v===null||v===undefined||!isFinite(v))?null:v;}
+  function fmtDateRu(iso){if(!iso) return "";var m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m) return iso;return m[3]+"."+m[2]+"."+m[1];}
 
   function calcRow(r){
     var gross=null,margin=null,avgCheck=null;
@@ -474,7 +519,7 @@
     }catch(e){return false;}
   }
 
-  /* ================== ВСТРОЕННЫЙ EXCEL (без CDN) ================== */
+  /* ================== ВСТРОЕННЫЙ EXCEL ================== */
   function crc32(bytes){
     var c,crc=0xFFFFFFFF;
     for(var i=0;i<bytes.length;i++){c=(crc^bytes[i])&0xFF;for(var k=0;k<8;k++) c=c&1?(c>>>1)^0xEDB88320:(c>>>1);crc=(crc>>>8)^c;}
@@ -515,33 +560,31 @@
   function buildSheetXml(aoa, opts){
     opts = opts || {};
     var colWidths = opts.colWidths || [];
-    var headerStyle = opts.headerStyle !== false;
+    var headerRowIndex = (typeof opts.headerRowIndex === "number") ? opts.headerRowIndex : 0;
     var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
     if (colWidths.length){
       xml += '<cols>';
-      colWidths.forEach(function(w, i){
-        xml += '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';
-      });
+      colWidths.forEach(function(w, i){ xml += '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>'; });
       xml += '</cols>';
     }
     xml += '<sheetData>';
     aoa.forEach(function(row, ri){
-      var isHeader = headerStyle && ri === 0;
+      var isHeader = (ri === headerRowIndex);
+      var isMeta = (ri < headerRowIndex);
       if (isHeader) xml += '<row r="'+(ri+1)+'" ht="34" customHeight="1">';
       else xml += '<row r="'+(ri+1)+'">';
       row.forEach(function(val, ci){
         var ref = colLetter(ci+1)+(ri+1);
-        var styleIdx = isHeader ? 1 : 0;
+        var styleIdx = 0;
+        if (isHeader) styleIdx = 1;
+        else if (isMeta) styleIdx = 2;
         if (val === null || val === undefined || val === ""){
           xml += '<c r="'+ref+'" s="'+styleIdx+'"/>';
           return;
         }
-        if (typeof val === "number" && isFinite(val)){
-          xml += '<c r="'+ref+'" s="'+styleIdx+'"><v>'+val+'</v></c>';
-        } else {
-          xml += '<c r="'+ref+'" s="'+styleIdx+'" t="inlineStr"><is><t xml:space="preserve">'+xlsxEscape(val)+'</t></is></c>';
-        }
+        if (typeof val === "number" && isFinite(val)) xml += '<c r="'+ref+'" s="'+styleIdx+'"><v>'+val+'</v></c>';
+        else xml += '<c r="'+ref+'" s="'+styleIdx+'" t="inlineStr"><is><t xml:space="preserve">'+xlsxEscape(val)+'</t></is></c>';
       });
       xml += '</row>';
     });
@@ -554,9 +597,10 @@
     var files = [];
     var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<fonts count="2">'
+      + '<fonts count="3">'
       +   '<font><sz val="11"/><name val="Calibri"/></font>'
       +   '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+      +   '<font><b/><sz val="12"/><color rgb="FF1E3A8A"/><name val="Calibri"/></font>'
       + '</fonts>'
       + '<fills count="3">'
       +   '<fill><patternFill patternType="none"/></fill>'
@@ -568,9 +612,10 @@
       +   '<border><left style="thin"><color rgb="FF0F766E"/></left><right style="thin"><color rgb="FF0F766E"/></right><top style="thin"><color rgb="FF0F766E"/></top><bottom style="thin"><color rgb="FF0F766E"/></bottom><diagonal/></border>'
       + '</borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="2">'
+      + '<cellXfs count="3">'
       +   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
       +   '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+      +   '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>'
       + '</cellXfs>'
       + '</styleSheet>';
 
@@ -585,9 +630,7 @@
 
   function bytesToBase64(bytes){
     var bin="", chunk=0x8000;
-    for(var i=0;i<bytes.length;i+=chunk){
-      bin+=String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
-    }
+    for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));}
     return btoa(bin);
   }
   function downloadBlob(bytes,filename,mime){
@@ -599,8 +642,7 @@
       a.href=url; a.download=filename; a.rel="noopener";
       document.body.appendChild(a); a.click();
       setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},300);
-      showFallbackLink(bytes, filename, mime);
-      return;
+      showFallbackLink(bytes, filename, mime); return;
     }catch(e){}
     try{
       var b64 = bytesToBase64(bytes);
@@ -618,21 +660,16 @@
       var url = URL.createObjectURL(blob);
       var box = document.createElement("div");
       box.id = "__dl_fallback";
-      box.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#f0fdfa;border:1.5px solid #0d9488;border-radius:10px;padding:12px 14px;font-size:14px;color:#115e59;box-shadow:0 6px 20px rgba(0,0,0,.12);";
-      box.innerHTML = 'Если файл не скачался автоматически — <a href="'+url+'" download="'+filename.replace(/"/g,"&quot;")+'" style="color:#0d9488;font-weight:600;text-decoration:underline;">нажмите сюда, чтобы скачать '+filename.replace(/</g,"&lt;")+'</a> <button type="button" style="margin-left:10px;background:#fff;border:1.5px solid #0d9488;color:#0d9488;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;" onclick="var b=document.getElementById(\'__dl_fallback\');if(b)b.parentNode.removeChild(b);">Закрыть</button>';
+      box.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#f0fdfa;border:1.5px solid #0d9488;border-radius:10px;padding:12px 14px;font-size:15px;color:#115e59;box-shadow:0 6px 20px rgba(0,0,0,.12);";
+      box.innerHTML = 'Если файл не скачался автоматически — <a href="'+url+'" download="'+filename.replace(/"/g,"&quot;")+'" style="color:#0d9488;font-weight:700;text-decoration:underline;">нажмите сюда, чтобы скачать '+filename.replace(/</g,"&lt;")+'</a> <button type="button" style="margin-left:10px;background:#fff;border:1.5px solid #0d9488;color:#0d9488;border-radius:6px;padding:5px 11px;cursor:pointer;font-size:14px;font-weight:600;" onclick="var b=document.getElementById(\'__dl_fallback\');if(b)b.parentNode.removeChild(b);">Закрыть</button>';
       document.body.appendChild(box);
-      setTimeout(function(){
-        if (box.parentNode) box.parentNode.removeChild(box);
-        URL.revokeObjectURL(url);
-      }, 60000);
+      setTimeout(function(){if (box.parentNode) box.parentNode.removeChild(box);URL.revokeObjectURL(url);}, 60000);
     }catch(e){}
   }
 
   function findEocd(buf){
     var dv=new DataView(buf);
-    for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--){
-      if(dv.getUint32(i,true)===0x06054b50) return i;
-    }
+    for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--){if(dv.getUint32(i,true)===0x06054b50) return i;}
     return -1;
   }
   async function inflateRaw(bytes){
@@ -647,13 +684,11 @@
     var dv=new DataView(buf);
     var cdCount=dv.getUint16(eocd+10,true);
     var cdOffset=dv.getUint32(eocd+16,true);
-    var files={};
-    var p=cdOffset;
+    var files={}; var p=cdOffset;
     for(var i=0;i<cdCount;i++){
       if(dv.getUint32(p,true)!==0x02014b50) break;
       var method=dv.getUint16(p+10,true);
       var compSize=dv.getUint32(p+20,true);
-      var uncompSize=dv.getUint32(p+24,true);
       var nameLen=dv.getUint16(p+28,true);
       var extraLen=dv.getUint16(p+30,true);
       var commentLen=dv.getUint16(p+32,true);
@@ -721,12 +756,16 @@
     return aoa;
   }
 
-  /* ---------- кнопки Excel ---------- */
-  var TEMPLATE_HEADERS=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽"];
+  /* ---------- шаблон / импорт / экспорт ---------- */
+  var TABLE_HEADERS=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽"];
+  var TEMPLATE_COL_WIDTHS = [26, 22, 18, 24, 16, 28, 26, 20];
+  function buildTemplateAoa(startIso, endIso){
+    return [["Период данных: начало", fmtDateRu(startIso)],["Период данных: окончание", fmtDateRu(endIso)],[],TABLE_HEADERS.slice()];
+  }
   el.downloadTemplate.addEventListener("click",function(){
     try{
-      var widths = [26, 22, 18, 24, 16, 28, 26, 20];
-      var bytes = buildXlsx([TEMPLATE_HEADERS.slice()], {colWidths: widths, headerStyle: true});
+      var aoa=buildTemplateAoa(el.periodStart.value, el.periodEnd.value);
+      var bytes=buildXlsx(aoa, {colWidths: TEMPLATE_COL_WIDTHS, headerRowIndex: 3});
       downloadBlob(bytes, "Шаблон_категории.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }catch(e){ alert("Ошибка при создании шаблона: " + e.message); }
   });
@@ -737,15 +776,27 @@
     var reader=new FileReader();
     reader.onload=async function(ev){
       try{
-        var buf=ev.target.result;
-        var arr=await parseXlsxToAoa(buf);
+        var arr=await parseXlsxToAoa(ev.target.result);
         if(!arr||!arr.length){alert("Файл пуст.");return;}
-        var headerRow=arr[0].map(function(h){return String(h==null?"":h).trim().toLowerCase();});
+        var startIso=null, endIso=null, headerRowIdx=-1;
+        for(var i=0;i<arr.length;i++){
+          var row=arr[i]||[];
+          var a=String(row[0]==null?"":row[0]).trim().toLowerCase();
+          if(a.indexOf("период данных")!==-1){
+            var b=String(row[1]==null?"":row[1]).trim();
+            if(a.indexOf("начало")!==-1) startIso=parseDateLoose(b)||parseDateLoose(row[1]);
+            else if(a.indexOf("окончание")!==-1) endIso=parseDateLoose(b)||parseDateLoose(row[1]);
+            continue;
+          }
+          if(a.indexOf("категория")!==-1){headerRowIdx=i;break;}
+        }
+        if(headerRowIdx===-1) headerRowIdx=0;
+        var headerRow=(arr[headerRowIdx]||[]).map(function(h){return String(h==null?"":h).trim().toLowerCase();});
         function findIdx(keys){for(var i=0;i<headerRow.length;i++)for(var k=0;k<keys.length;k++)if(headerRow[i].indexOf(keys[k])!==-1) return i;return -1;}
         var idx={name:findIdx(["категория","название"]),orders:findIdx(["количество","заказ"]),revenue:findIdx(["выручка"]),cost:findIdx(["закупочная","закупка"]),log:findIdx(["логистика"]),pack:findIdx(["упаковка"]),comm:findIdx(["комисси","эквайринг"]),other:findIdx(["прочие"])};
         if(idx.name===-1||idx.revenue===-1){alert("В файле не найдены обязательные колонки: «Категория» и/или «Выручка, ₽».");return;}
         var imported=[],errors=[];
-        for(var i=1;i<arr.length;i++){
+        for(var i=headerRowIdx+1;i<arr.length;i++){
           var row=arr[i]; if(!row) continue;
           var name=idx.name>=0&&row[idx.name]!=null?String(row[idx.name]).trim():"";
           var rev=idx.revenue>=0?parseNum(row[idx.revenue]):{ok:true,value:null,empty:true};
@@ -768,6 +819,8 @@
         rows=[];nextId=1;viewOrder=null;currentFilter="all";el.filterSelect.value="all";
         imported.forEach(function(d){addRow(d);});
         if(imported.some(function(d){return d.log!==null||d.pack!==null||d.comm!==null||d.other!==null;})) extraOpen=true;
+        if(startIso) el.periodStart.value=startIso;
+        if(endIso) el.periodEnd.value=endIso;
         render();scheduleSave();
       }catch(err){alert("Не удалось прочитать файл: "+err.message);}
     };
@@ -779,7 +832,8 @@
     try{
       var headers=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Валовая прибыль, ₽","Маржинальность, %","Средний чек, ₽"];
       if(extraOpen) headers=headers.concat(["Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽","Прибыль с учётом доп. расходов, ₽"]);
-      var aoa=[headers];
+      var periodLine = "Период данных: с " + (fmtDateRu(el.periodStart.value) || "—") + " по " + (fmtDateRu(el.periodEnd.value) || "—");
+      var aoa=[ [periodLine], [], headers ];
       rows.forEach(function(r){
         var c=calcRow(r);
         var line=[r.name,r.orders,r.revenue,r.cost,numOrNull(c.gross),numOrNull(c.margin),numOrNull(c.avgCheck)];
@@ -788,7 +842,7 @@
       });
       var widths = [26, 22, 18, 24, 20, 18, 18];
       if (extraOpen) widths = widths.concat([16, 28, 26, 20, 30]);
-      var bytes = buildXlsx(aoa, {colWidths: widths, headerStyle: true});
+      var bytes = buildXlsx(aoa, {colWidths: widths, headerRowIndex: 2});
       var fname="Результаты_категории";
       if(el.periodStart.value||el.periodEnd.value) fname+="_"+(el.periodStart.value||"")+"_"+(el.periodEnd.value||"");
       downloadBlob(bytes,fname+".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
