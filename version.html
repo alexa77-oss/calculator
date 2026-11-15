@@ -296,8 +296,8 @@ var cost=toNumber(cat.cost);
 var result={gross:null,margin:null,avgcheck:null,profitExp:null};
 if(revenue!==null&&cost!==null){result.gross=revenue-cost;}
 if(result.gross!==null&&revenue!==0){result.margin=result.gross/revenue*100;}
-if(orders!==null&&orders>0&&revenue!==null){result.avgcheck=revenue/orders;}
-if(result.gross!==null){
+if(orders!==null&&Number.isInteger(orders)&&orders>0&&revenue!==null){result.avgcheck=revenue/orders;}
+if(result.gross!==null&&hasExpenses(cat)){
 var expenses=0;
 EXPENSE_FIELDS.forEach(function(field){
 var value=toNumber(cat[field]);
@@ -560,7 +560,12 @@ function renderTotals(){
 var rows=orderedCats().filter(function(cat){
 var revenue=toNumber(cat.revenue);
 var cost=toNumber(cat.cost);
-return calculated&&revenue!==null&&cost!==null;
+var orders=toNumber(cat.orders);
+var ordersOk=orders===null||(isFinite(orders)&&Number.isInteger(orders));
+return calculated
+&& revenue!==null&&isFinite(revenue)
+&& cost!==null&&isFinite(cost)
+&& ordersOk;
 });
 if(rows.length===0){
 el('totalsMain').innerHTML='<div class="total">Нет данных для расчёта<b>—</b></div>';
@@ -574,7 +579,9 @@ if(orders!==null){totals.orders+=orders;}
 totals.revenue+=toNumber(cat.revenue);
 totals.cost+=toNumber(cat.cost);
 totals.gross+=cat.result.gross;
+if(hasExpenses(cat)&&cat.result.profitExp!==null){
 totals.profitExp+=cat.result.profitExp;
+}
 });
 totals.margin=totals.revenue!==0?totals.gross/totals.revenue*100:null;
 totals.avgcheck=totals.orders!==0?totals.revenue/totals.orders:null;
@@ -624,9 +631,12 @@ return valid;
 
 function hasInvalidInputs(){
 return cats.some(function(cat){
-return BASE_FIELDS.concat(EXPENSE_FIELDS).some(function(field){
+var baseInvalid=BASE_FIELDS.concat(EXPENSE_FIELDS).some(function(field){
 return !parseNumber(cat[field]).ok;
 });
+var ordersValue=toNumber(cat.orders);
+var ordersInvalid=ordersValue!==null&&(!isFinite(ordersValue)||!Number.isInteger(ordersValue));
+return baseInvalid||ordersInvalid;
 });
 }
 
@@ -759,7 +769,7 @@ cat.other,
 result.gross,
 result.margin===null?null:result.margin/100,
 result.avgcheck,
-result.profitExp
+hasExpenses(cat)?result.profitExp:null
 ]);
 });
 rows.push([]);
@@ -767,7 +777,11 @@ rows.push(['Итоги по всем категориям']);
 var totals=orderedCats().filter(function(cat){
 var revenue=toNumber(cat.revenue);
 var cost=toNumber(cat.cost);
-return revenue!==null&&cost!==null;
+var orders=toNumber(cat.orders);
+var ordersOk=orders===null||(isFinite(orders)&&Number.isInteger(orders));
+return revenue!==null&&isFinite(revenue)
+&& cost!==null&&isFinite(cost)
+&& ordersOk;
 });
 if(totals.length===0){
 ['Общее количество оплаченных заказов','Общая выручка, ₽','Общая закупочная стоимость, ₽','Общая валовая прибыль, ₽','Общая маржинальность','Общий средний чек, ₽'].forEach(function(title){
@@ -781,7 +795,9 @@ if(orders!==null){sum.orders+=orders;}
 sum.revenue+=toNumber(cat.revenue);
 sum.cost+=toNumber(cat.cost);
 sum.gross+=cat.result.gross;
+if(hasExpenses(cat)&&cat.result.profitExp!==null){
 sum.profitExp+=cat.result.profitExp;
+}
 });
 sum.margin=sum.revenue!==0?sum.gross/sum.revenue*100:null;
 sum.avgcheck=sum.orders!==0?sum.revenue/sum.orders:null;
