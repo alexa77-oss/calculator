@@ -92,7 +92,9 @@ th,td{padding:8px;font-size:14px}
 </div>
 
 <p class="intro intro-desktop">
-Подходит для товаров с большим количеством категорий: электроника, бытовая техника, косметика, товары для дома, автозапчасти, стройматериалы, зоотовары, продукты питания.<br><br>
+Подходит для товаров с большим количеством категорий: электроника, бытовая техника, косметика, товары для дома, автозапчасти, стройматериалы, зоотовары, продукты питания.
+
+
 Внесите данные о продажах за выбранный период. Калькулятор сравнит категории по выручке, валовой прибыли, маржинальности и среднему чеку.
 </p>
 
@@ -211,7 +213,9 @@ th,td{padding:8px;font-size:14px}
 </ul>
 <div class="note">
 Валовая прибыль — это разница между выручкой и закупочной стоимостью проданных товаров. Она не является чистой прибылью: в ней не учтены аренда, зарплаты, налоги, логистика и другие операционные расходы.
-<span id="expenseNote" hidden><br><br>Прибыль с учётом дополнительных расходов также не является чистой прибылью бизнеса: аренда, зарплаты, налоги и другие постоянные расходы в расчёт не входят.</span>
+<span id="expenseNote" hidden>
+
+Прибыль с учётом дополнительных расходов также не является чистой прибылью бизнеса: аренда, зарплаты, налоги и другие постоянные расходы в расчёт не входят.</span>
 </div>
 <p class="footnote" id="expenseFootnote" hidden>
 Если дополнительные расходы указаны не для всех категорий, прибыль с учётом доп. расходов рассчитана только для категорий с заполненными расходами. Сравнение по этому показателю может быть неполным.
@@ -250,7 +254,7 @@ var HEADERS=[
 ];
 
 function esc(value){
-return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+return String(value).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,''');
 }
 
 function categoryName(cat){
@@ -272,7 +276,7 @@ return order.map(function(id){return cats.find(function(cat){return cat.id===id;
 function parseNumber(value){
 if(value===''||value===null||value===undefined){return{ok:true,value:null};}
 var normalized=String(value).replace(/[\s\u00A0]/g,'').replace(/,/g,'.');
-if(!/^\d+(\.\d+)?$/.test(normalized)){return{ok:false,value:NaN};}
+if(!/^\d+(.\d+)?$/.test(normalized)){return{ok:false,value:NaN};}
 var number=Number(normalized);
 if(!isFinite(number)){return{ok:false,value:NaN};}
 return{ok:true,value:number};
@@ -296,8 +300,8 @@ var cost=toNumber(cat.cost);
 var result={gross:null,margin:null,avgcheck:null,profitExp:null};
 if(revenue!==null&&cost!==null){result.gross=revenue-cost;}
 if(result.gross!==null&&revenue!==0){result.margin=result.gross/revenue*100;}
-if(orders!==null&&Number.isInteger(orders)&&orders>0&&revenue!==null){result.avgcheck=revenue/orders;}
-if(result.gross!==null&&hasExpenses(cat)){
+if(orders!==null&&orders>0&&revenue!==null){result.avgcheck=revenue/orders;}
+if(result.gross!==null){
 var expenses=0;
 EXPENSE_FIELDS.forEach(function(field){
 var value=toNumber(cat[field]);
@@ -382,7 +386,7 @@ return calculated&&value!==null&&isFinite(value);
 if(rows.length===0){return [];}
 rows.sort(function(a,b){return getMetricValue(b,field)-getMetricValue(a,field);});
 if(rows.length<=3){return rows;}
-var boundary=getMetricValue(rows[2],field);
+var boundary=getMetricValue(rows,field);
 return rows.filter(function(cat){return getMetricValue(cat,field)>=boundary;});
 }
 
@@ -470,8 +474,8 @@ if(expensesVisible&&anyExpensesEntered()){
 cells.push(['profitExp',body.querySelector('[data-id="'+cat.id+'"][data-field="profitExp"]')]);
 }
 cells.forEach(function(item){
-var field=item[0];
-var cell=item[1];
+var field=item;
+var cell=item;
 if(!cell){return;}
 var value=field==='revenue'||field==='orders'?toNumber(cat[field]):cat.result[field];
 cell.classList.remove('best');
@@ -526,14 +530,14 @@ metrics.push(['Прибыль с учётом доп. расходов','profitE
 }
 var html='';
 metrics.forEach(function(metric){
-var title=metric[0];
-var field=metric[1];
+var title=metric;
+var field=metric;
 var best=bestBy(field);
 if(best.length===0){
 html+='<div class="leader-item"><span>'+title+'</span><span>—</span></div>';
 return;
 }
-var value=getMetricValue(best[0],field);
+var value=getMetricValue(best,field);
 var formatted=field==='margin'?formatPercent(value):field==='orders'?formatCount(value):formatMoney(value);
 var names=best.map(function(cat){return esc(categoryName(cat));}).join(', ');
 if(best.length===1){
@@ -560,12 +564,7 @@ function renderTotals(){
 var rows=orderedCats().filter(function(cat){
 var revenue=toNumber(cat.revenue);
 var cost=toNumber(cat.cost);
-var orders=toNumber(cat.orders);
-var ordersOk=orders===null||(isFinite(orders)&&Number.isInteger(orders));
-return calculated
-&& revenue!==null&&isFinite(revenue)
-&& cost!==null&&isFinite(cost)
-&& ordersOk;
+return calculated&&revenue!==null&&cost!==null;
 });
 if(rows.length===0){
 el('totalsMain').innerHTML='<div class="total">Нет данных для расчёта<b>—</b></div>';
@@ -579,9 +578,7 @@ if(orders!==null){totals.orders+=orders;}
 totals.revenue+=toNumber(cat.revenue);
 totals.cost+=toNumber(cat.cost);
 totals.gross+=cat.result.gross;
-if(hasExpenses(cat)&&cat.result.profitExp!==null){
 totals.profitExp+=cat.result.profitExp;
-}
 });
 totals.margin=totals.revenue!==0?totals.gross/totals.revenue*100:null;
 totals.avgcheck=totals.orders!==0?totals.revenue/totals.orders:null;
@@ -595,8 +592,8 @@ var mainItems=[
 ];
 var mainHtml='';
 mainItems.forEach(function(item){
-var title=item[0];
-var field=item[1];
+var title=item;
+var field=item;
 var value=totals[field];
 var formatted=field==='margin'?formatPercent(value):field==='orders'?formatCount(value):formatMoney(value);
 var className='';
@@ -631,12 +628,9 @@ return valid;
 
 function hasInvalidInputs(){
 return cats.some(function(cat){
-var baseInvalid=BASE_FIELDS.concat(EXPENSE_FIELDS).some(function(field){
+return BASE_FIELDS.concat(EXPENSE_FIELDS).some(function(field){
 return !parseNumber(cat[field]).ok;
 });
-var ordersValue=toNumber(cat.orders);
-var ordersInvalid=ordersValue!==null&&(!isFinite(ordersValue)||!Number.isInteger(ordersValue));
-return baseInvalid||ordersInvalid;
 });
 }
 
@@ -684,7 +678,7 @@ var reader=new FileReader();
 reader.onload=function(event){
 try{
 var workbook=XLSX.read(event.target.result,{type:'array'});
-var worksheet=workbook.Sheets[workbook.SheetNames[0]];
+var worksheet=workbook.Sheets[workbook.SheetNames];
 var rows=XLSX.utils.sheet_to_json(worksheet,{header:1,defval:'',raw:true});
 var headerIndex=rows.findIndex(function(row){
 return row.some(function(value){return String(value).trim()!=='';});
@@ -724,7 +718,7 @@ order=[];
 seq=0;
 var imported=[];
 dataRows.forEach(function(row){
-var cat=addCategory(String(row[indexes[0]]||''));
+var cat=addCategory(String(row[indexes]||''));
 BASE_FIELDS.forEach(function(field,index){cat[field]=String(row[indexes[index+1]]||'');});
 EXPENSE_FIELDS.forEach(function(field,index){cat[field]=String(row[indexes[index+4]]||'');});
 imported.push(cat);
@@ -769,7 +763,7 @@ cat.other,
 result.gross,
 result.margin===null?null:result.margin/100,
 result.avgcheck,
-hasExpenses(cat)?result.profitExp:null
+result.profitExp
 ]);
 });
 rows.push([]);
@@ -777,11 +771,7 @@ rows.push(['Итоги по всем категориям']);
 var totals=orderedCats().filter(function(cat){
 var revenue=toNumber(cat.revenue);
 var cost=toNumber(cat.cost);
-var orders=toNumber(cat.orders);
-var ordersOk=orders===null||(isFinite(orders)&&Number.isInteger(orders));
-return revenue!==null&&isFinite(revenue)
-&& cost!==null&&isFinite(cost)
-&& ordersOk;
+return revenue!==null&&cost!==null;
 });
 if(totals.length===0){
 ['Общее количество оплаченных заказов','Общая выручка, ₽','Общая закупочная стоимость, ₽','Общая валовая прибыль, ₽','Общая маржинальность','Общий средний чек, ₽'].forEach(function(title){
@@ -795,9 +785,7 @@ if(orders!==null){sum.orders+=orders;}
 sum.revenue+=toNumber(cat.revenue);
 sum.cost+=toNumber(cat.cost);
 sum.gross+=cat.result.gross;
-if(hasExpenses(cat)&&cat.result.profitExp!==null){
 sum.profitExp+=cat.result.profitExp;
-}
 });
 sum.margin=sum.revenue!==0?sum.gross/sum.revenue*100:null;
 sum.avgcheck=sum.orders!==0?sum.revenue/sum.orders:null;
@@ -845,7 +833,7 @@ renderAll();
 el('btnTemplate').onclick=downloadTemplate;
 el('btnImport').onclick=function(){if(excelReady()){el('fileExcel').click();}};
 el('fileExcel').onchange=function(event){
-var file=event.target.files[0];
+var file=event.target.files;
 event.target.value='';
 importExcel(file);
 };
