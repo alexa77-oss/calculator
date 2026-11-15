@@ -4,93 +4,52 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сравнение показателей эффективности товарных категорий</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{
-    --teal:#0d9488;
-    --teal-dark:#0f766e;
-    --teal-light:#ccfbf1;
-    --teal-hover:#f0fdfa;
-    --border:#e2e8f0;
-    --text:#1e293b;
-    --muted:#64748b;
-    --danger:#dc2626;
-    --bg:#ffffff;
+    --teal:#0d9488; --teal-dark:#0f766e; --teal-light:#ccfbf1; --teal-hover:#f0fdfa;
+    --border:#e2e8f0; --text:#1e293b; --muted:#64748b; --danger:#dc2626; --bg:#ffffff;
+    --calc-bg:#f0f6ff; --calc-head:#dbeafe; --calc-text:#1e3a8a; --calc-border:#bfdbfe;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    line-height:1.45;
-    padding:24px 16px 60px;
-  }
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.45;padding:24px 16px 60px;}
   .wrap{max-width:1280px;margin:0 auto;}
-  header{
-    display:flex;align-items:flex-start;justify-content:space-between;
-    gap:24px;padding:8px 8px 24px;flex-wrap:nowrap;
-  }
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:8px 8px 24px;flex-wrap:nowrap;}
   .header-text{flex:1 1 auto;min-width:0;}
   h1{font-size:26px;line-height:1.25;margin:0 0 10px;font-weight:700;}
   .header-text p{margin:0;color:var(--muted);font-size:15px;max-width:760px;}
   .logo{flex:0 0 auto;max-height:72px;max-width:180px;object-fit:contain;margin:4px 12px 0 0;}
-  .logo-fallback{
-    flex:0 0 auto;font-size:14px;color:var(--muted);
-    border:1px dashed var(--border);border-radius:8px;padding:18px 22px;margin:4px 12px 0 0;
-  }
-  button, .btn{
-    font-family:inherit;font-size:14px;cursor:pointer;border-radius:8px;padding:9px 14px;
-    transition:background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
-    white-space:nowrap;
-  }
+  .logo-fallback{flex:0 0 auto;font-size:14px;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:18px 22px;margin:4px 12px 0 0;}
+  button, .btn{font-family:inherit;font-size:14px;cursor:pointer;border-radius:8px;padding:9px 14px;transition:background-color .15s ease, box-shadow .15s ease, border-color .15s ease;white-space:nowrap;}
   .btn-outline{background:#fff;color:var(--teal);border:1.5px solid var(--teal);}
-  .btn-outline:hover,.btn-outline:focus-visible{
-    background:var(--teal-hover);box-shadow:0 0 0 3px rgba(13,148,136,.18);outline:none;
-  }
+  .btn-outline:hover,.btn-outline:focus-visible{background:var(--teal-hover);box-shadow:0 0 0 3px rgba(13,148,136,.18);outline:none;}
   .btn-outline:active{background:var(--teal-light);box-shadow:0 0 0 4px rgba(13,148,136,.25);}
   .btn-primary{background:var(--teal);color:#fff;border:1.5px solid var(--teal);}
-  .btn-primary:hover,.btn-primary:focus-visible{
-    background:var(--teal-dark);border-color:var(--teal-dark);
-    box-shadow:0 0 0 3px rgba(13,148,136,.22);outline:none;
-  }
+  .btn-primary:hover,.btn-primary:focus-visible{background:var(--teal-dark);border-color:var(--teal-dark);box-shadow:0 0 0 3px rgba(13,148,136,.22);outline:none;}
   .btn-primary:active{box-shadow:0 0 0 5px rgba(13,148,136,.28);}
-  .btn-danger-outline{
-    background:#fff;color:var(--danger);border:1.5px solid var(--danger);
-    padding:5px 9px;font-size:13px;line-height:1;
-  }
-  .btn-danger-outline:hover,.btn-danger-outline:focus-visible{
-    background:#fef2f2;box-shadow:0 0 0 3px rgba(220,38,38,.15);outline:none;
-  }
+  .btn-danger-outline{background:#fff;color:var(--danger);border:1.5px solid var(--danger);padding:5px 9px;font-size:13px;line-height:1;}
+  .btn-danger-outline:hover,.btn-danger-outline:focus-visible{background:#fef2f2;box-shadow:0 0 0 3px rgba(220,38,38,.15);outline:none;}
   .period-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:0 8px 18px;}
   .field{display:flex;flex-direction:column;gap:5px;min-width:0;}
   .field label{font-size:13px;color:var(--muted);}
-  .field input[type="date"]{
-    font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);
-    border-radius:8px;background:#fff;color:var(--text);min-width:150px;
-  }
+  .field input[type="date"]{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);min-width:150px;}
   .field input[type="date"]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
   .toolbar-actions{display:flex;flex-wrap:wrap;gap:10px;padding:0 8px 12px;align-items:center;}
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:0 8px 18px;align-items:center;}
-  .table-scroll{
-    width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    border:1px solid var(--border);border-radius:12px;background:#fff;
-  }
+  .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:12px;background:#fff;}
   table{border-collapse:collapse;width:100%;min-width:820px;font-size:14px;}
   table.with-extra{min-width:1180px;}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle;}
-  thead th{
-    background:#f8fafc;font-weight:600;font-size:13px;color:#334155;
-    white-space:nowrap;position:sticky;top:0;
-  }
+  thead th{background:#f8fafc;font-weight:600;font-size:13px;color:#334155;white-space:nowrap;position:sticky;top:0;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:#fafefe;}
   td.num, th.num{text-align:right;white-space:nowrap;}
-  td.calc{background:#fbfefe;}
-  .cell-input{
-    width:100%;min-width:90px;font-family:inherit;font-size:14px;padding:6px 8px;
-    border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);text-align:right;
-  }
+
+  /* Расчётные колонки — лёгкая подсветка, без резкого контраста */
+  td.calc{background:var(--calc-bg);color:var(--calc-text);}
+  th.calc-head{background:var(--calc-head) !important;color:var(--calc-text) !important;}
+
+  .cell-input{width:100%;min-width:90px;font-family:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);text-align:right;}
   .cell-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
   .cell-input.invalid{border-color:var(--danger);background:#fef2f2;box-shadow:0 0 0 2px rgba(220,38,38,.15);}
   .cell-input.text-input{text-align:left;min-width:150px;}
@@ -98,47 +57,27 @@
   .error-msg{color:var(--danger);font-size:12px;margin-top:3px;display:none;}
   .row-error .error-msg{display:block;}
   .muted{color:var(--muted);}
-  .footnote{
-    margin:12px 8px 0;padding:10px 12px;background:#f0fdfa;
-    border:1px solid var(--teal-light);border-radius:8px;font-size:13px;color:#115e59;display:none;
-  }
+  .footnote{margin:12px 8px 0;padding:10px 12px;background:#f0fdfa;border:1px solid var(--teal-light);border-radius:8px;font-size:13px;color:#115e59;display:none;}
   .footnote.show{display:block;}
   .section{margin:24px 8px 0;padding:18px;border:1px solid var(--border);border-radius:12px;background:#fff;}
   .section h2{font-size:18px;margin:0 0 14px;font-weight:700;}
   .section h3{font-size:15px;margin:16px 0 10px;font-weight:600;color:#334155;}
   .section h3:first-child{margin-top:0;}
-  /* Сортировка и фильтр */
   .sort-block{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px;}
-  .sort-block .field select{
-    font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);
-    border-radius:8px;background:#fff;color:var(--text);min-width:200px;
-  }
-  .sort-block .field select:focus{
-    outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);
-  }
+  .sort-block .field select, .filter-block .field select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);min-width:200px;}
+  .sort-block .field select:focus, .filter-block .field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
   .check-field{display:flex;align-items:center;gap:8px;padding-bottom:9px;}
   .check-field input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);}
   .check-field label{font-size:14px;color:var(--text);}
   .filter-block{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;}
-  .filter-block .field select{
-    font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);
-    border-radius:8px;background:#fff;color:var(--text);min-width:240px;
-  }
-  .filter-block .field select:focus{
-    outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);
-  }
-  /* Лидеры */
+  .filter-block .field select{min-width:240px;}
   .leaders{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
   .leaders h3{margin:0 0 10px;font-size:15px;font-weight:600;color:#334155;}
   .leaders-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;}
-  .leader-item{
-    border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;
-    font-size:14px;
-  }
+  .leader-item{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;font-size:14px;}
   .leader-item .metric{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;}
   .leader-item .name{font-weight:600;}
   .leader-item .val{color:var(--muted);white-space:nowrap;}
-  /* Итоги */
   .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
   .total-item{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;}
   .total-item .lbl{font-size:12px;color:var(--muted);display:block;margin-bottom:3px;}
@@ -153,12 +92,10 @@
     .logo{order:2;max-height:48px;max-width:130px;margin:0 0 0 8px;}
     .logo-fallback{order:2;margin:0 0 0 8px;padding:10px 14px;font-size:12px;}
     .header-text{order:1;flex-basis:100%;}
-    h1{font-size:20px;}
-    .header-text p{font-size:14px;}
+    h1{font-size:20px;} .header-text p{font-size:14px;}
   }
   @media (max-width:560px){
-    body{padding:16px 10px 40px;}
-    h1{font-size:18px;}
+    body{padding:16px 10px 40px;} h1{font-size:18px;}
     .period-row{flex-direction:column;align-items:stretch;}
     .field input[type="date"]{min-width:0;width:100%;}
     .toolbar-actions, .toolbar{gap:8px;}
@@ -172,7 +109,6 @@
 </head>
 <body>
 <div class="wrap">
-
   <header>
     <div class="header-text">
       <h1>Сравнение показателей эффективности товарных категорий</h1>
@@ -183,17 +119,9 @@
   </header>
 
   <div class="period-row">
-    <div class="field">
-      <label for="periodStart">Период данных: начало</label>
-      <input type="date" id="periodStart">
-    </div>
-    <div class="field">
-      <label for="periodEnd">Период данных: окончание</label>
-      <input type="date" id="periodEnd">
-    </div>
-    <div class="field">
-      <button class="btn-primary" id="calcBtn" type="button">Рассчитать</button>
-    </div>
+    <div class="field"><label for="periodStart">Период данных: начало</label><input type="date" id="periodStart"></div>
+    <div class="field"><label for="periodEnd">Период данных: окончание</label><input type="date" id="periodEnd"></div>
+    <div class="field"><button class="btn-primary" id="calcBtn" type="button">Рассчитать</button></div>
   </div>
 
   <div class="toolbar-actions">
@@ -216,14 +144,14 @@
           <th class="num">Количество оплаченных заказов</th>
           <th class="num">Выручка, ₽</th>
           <th class="num">Закупочная стоимость, ₽</th>
-          <th class="num">Валовая прибыль, ₽</th>
-          <th class="num">Маржинальность, %</th>
-          <th class="num">Средний чек, ₽</th>
+          <th class="num calc-head">Валовая прибыль, ₽</th>
+          <th class="num calc-head">Маржинальность, %</th>
+          <th class="num calc-head">Средний чек, ₽</th>
           <th class="num extra-col hidden">Логистика, ₽</th>
           <th class="num extra-col hidden">Упаковка и комплектация, ₽</th>
           <th class="num extra-col hidden">Комиссии и эквайринг, ₽</th>
           <th class="num extra-col hidden">Прочие расходы, ₽</th>
-          <th class="num extra-col hidden">Прибыль с учётом доп. расходов, ₽</th>
+          <th class="num extra-col hidden calc-head">Прибыль с учётом доп. расходов, ₽</th>
           <th>Действия</th>
         </tr>
       </thead>
@@ -235,10 +163,8 @@
     Если дополнительные расходы указаны не для всех категорий, прибыль с учётом доп. расходов рассчитана только для категорий с заполненными расходами. Сравнение по этому показателю может быть неполным.
   </div>
 
-  <!-- Сортировка и фильтр (по макету) -->
   <div class="section">
     <h2>Сортировка и фильтр</h2>
-
     <div class="sort-block">
       <div class="field">
         <label for="sortField">Сортировать по:</label>
@@ -251,18 +177,10 @@
           <option value="profitExtra" id="sortProfitExtraOpt" class="hidden">Прибыль с учётом доп. расходов</option>
         </select>
       </div>
-      <div class="check-field">
-        <input type="checkbox" id="sortAsc">
-        <label for="sortAsc">по возрастанию</label>
-      </div>
-      <div class="field">
-        <button class="btn-outline" id="applySort" type="button">Применить сортировку</button>
-      </div>
-      <div class="field">
-        <button class="btn-outline" id="resetSort" type="button">Исходный порядок</button>
-      </div>
+      <div class="check-field"><input type="checkbox" id="sortAsc"><label for="sortAsc">по возрастанию</label></div>
+      <div class="field"><button class="btn-outline" id="applySort" type="button">Применить сортировку</button></div>
+      <div class="field"><button class="btn-outline" id="resetSort" type="button">Исходный порядок</button></div>
     </div>
-
     <div class="filter-block">
       <div class="field">
         <label for="filterSelect">Показать категории:</label>
@@ -276,7 +194,6 @@
         </select>
       </div>
     </div>
-
     <div class="leaders">
       <h3>Лидеры по показателям</h3>
       <div class="leaders-list" id="leadersList"></div>
@@ -303,604 +220,593 @@
       <p class="note">Валовая прибыль — это разница между выручкой и закупочной стоимостью проданных товаров. Она не является чистой прибылью: в ней не учтены аренда, зарплаты, налоги, логистика и другие операционные расходы.</p>
     </div>
   </div>
-
 </div>
 
 <script>
 (function(){
   "use strict";
-
   var MAX_CATEGORIES = 50;
-  var STORAGE_KEY = "calc_auto_parts_v2";
-  var rows = [];              // полный набор, не сортируется
-  var viewOrder = null;       // массив id в порядке отображения (null = исходный порядок)
-  var currentFilter = "all";  // текущий фильтр "Показать категории"
+  var STORAGE_KEY = "calc_auto_parts_v5";
+  var rows = [];
+  var viewOrder = null;
+  var currentFilter = "all";
   var extraOpen = false;
   var nextId = 1;
 
   var el = {
-    tbody: document.getElementById("tableBody"),
-    table: document.getElementById("mainTable"),
-    logoImg: document.getElementById("logoImg"),
-    logoFallback: document.getElementById("logoFallback"),
-    periodStart: document.getElementById("periodStart"),
-    periodEnd: document.getElementById("periodEnd"),
+    tbody: document.getElementById("tableBody"), table: document.getElementById("mainTable"),
+    logoImg: document.getElementById("logoImg"), logoFallback: document.getElementById("logoFallback"),
+    periodStart: document.getElementById("periodStart"), periodEnd: document.getElementById("periodEnd"),
     calcBtn: document.getElementById("calcBtn"),
     downloadTemplate: document.getElementById("downloadTemplate"),
-    importBtn: document.getElementById("importBtn"),
-    importFile: document.getElementById("importFile"),
+    importBtn: document.getElementById("importBtn"), importFile: document.getElementById("importFile"),
     exportBtn: document.getElementById("exportBtn"),
-    addCategory: document.getElementById("addCategory"),
-    toggleExtra: document.getElementById("toggleExtra"),
+    addCategory: document.getElementById("addCategory"), toggleExtra: document.getElementById("toggleExtra"),
     extraFootnote: document.getElementById("extraFootnote"),
-    sortField: document.getElementById("sortField"),
-    sortAsc: document.getElementById("sortAsc"),
-    applySort: document.getElementById("applySort"),
-    resetSort: document.getElementById("resetSort"),
+    sortField: document.getElementById("sortField"), sortAsc: document.getElementById("sortAsc"),
+    applySort: document.getElementById("applySort"), resetSort: document.getElementById("resetSort"),
     sortProfitExtraOpt: document.getElementById("sortProfitExtraOpt"),
     filterSelect: document.getElementById("filterSelect"),
     filterProfitExtraOpt: document.getElementById("filterProfitExtraOpt"),
     leadersList: document.getElementById("leadersList"),
-    totalsMain: document.getElementById("totalsMain"),
-    totalsExtra: document.getElementById("totalsExtra"),
+    totalsMain: document.getElementById("totalsMain"), totalsExtra: document.getElementById("totalsExtra"),
     totalsExtraBlock: document.getElementById("totalsExtraBlock"),
     formulaExtra: document.getElementById("formulaExtra")
   };
 
-  /* ---------- утилиты ---------- */
-  function escapeHtml(s){
-    return String(s == null ? "" : s)
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-  }
+  function escapeHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
   function parseNum(raw){
-    if (raw === null || raw === undefined) return {ok:true, value:null, empty:true};
-    var s = String(raw).trim();
-    if (s === "") return {ok:true, value:null, empty:true};
-    s = s.replace(/\u00A0/g," ").replace(/\s+/g,"");
-    if (s.indexOf(",") !== -1 && s.indexOf(".") === -1) s = s.replace(",", ".");
-    else s = s.replace(/,/g, "");
-    if (!/^-?\d+(\.\d+)?$/.test(s)) return {ok:false, value:null, empty:false};
-    var v = parseFloat(s);
-    if (!isFinite(v)) return {ok:false, value:null, empty:false};
-    if (v < 0) return {ok:false, value:null, empty:false, negative:true};
-    return {ok:true, value:v, empty:false};
+    if (raw===null||raw===undefined) return {ok:true,value:null,empty:true};
+    var s=String(raw).trim(); if(s==="") return {ok:true,value:null,empty:true};
+    s=s.replace(/\u00A0/g," ").replace(/\s+/g,"");
+    if(s.indexOf(",")!==-1&&s.indexOf(".")===-1) s=s.replace(",","."); else s=s.replace(/,/g,"");
+    if(!/^-?\d+(\.\d+)?$/.test(s)) return {ok:false,value:null,empty:false};
+    var v=parseFloat(s); if(!isFinite(v)) return {ok:false,value:null,empty:false};
+    if(v<0) return {ok:false,value:null,empty:false,negative:true};
+    return {ok:true,value:v,empty:false};
   }
   function parseOrders(raw){
-    var r = parseNum(raw);
-    if (!r.ok) return r;
-    if (r.empty) return r;
-    if (Math.floor(r.value) !== r.value) return {ok:false, value:null, empty:false, fractional:true};
+    var r=parseNum(raw); if(!r.ok) return r; if(r.empty) return r;
+    if(Math.floor(r.value)!==r.value) return {ok:false,value:null,empty:false,fractional:true};
     return r;
   }
-  function fmtMoney(v){
-    if (v === null || v === undefined || !isFinite(v)) return "—";
-    return v.toLocaleString("ru-RU", {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-  function fmtPct(v){
-    if (v === null || v === undefined || !isFinite(v)) return "—";
-    return v.toLocaleString("ru-RU", {minimumFractionDigits:2, maximumFractionDigits:2}) + " %";
-  }
-  function fmtInt(v){
-    if (v === null || v === undefined || !isFinite(v)) return "—";
-    return v.toLocaleString("ru-RU");
-  }
-  function numOrNull(v){ return (v === null || v === undefined || !isFinite(v)) ? null : v; }
+  function fmtMoney(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function fmtPct(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" %";}
+  function fmtInt(v){if(v===null||v===undefined||!isFinite(v)) return "—";return v.toLocaleString("ru-RU");}
+  function numOrNull(v){return (v===null||v===undefined||!isFinite(v))?null:v;}
 
-  /* ---------- расчёт строки ---------- */
   function calcRow(r){
-    var orders = r.orders, revenue = r.revenue, cost = r.cost;
-    var gross = null, margin = null, avgCheck = null;
-    if (revenue !== null && cost !== null) gross = revenue - cost;
-    if (revenue !== null && revenue !== 0 && gross !== null) margin = gross / revenue * 100;
-    if (revenue !== null && orders !== null && orders !== 0) avgCheck = revenue / orders;
-    var extraFilled = [r.log, r.pack, r.comm, r.other].some(function(x){ return x !== null; });
-    var extraSum = null, profitExtra = null;
-    if (extraFilled){
-      extraSum = (r.log || 0) + (r.pack || 0) + (r.comm || 0) + (r.other || 0);
-      if (gross !== null) profitExtra = gross - extraSum;
-    }
-    return {gross:gross, margin:margin, avgCheck:avgCheck,
-            extraFilled:extraFilled, extraSum:extraSum, profitExtra:profitExtra};
+    var gross=null,margin=null,avgCheck=null;
+    if(r.revenue!==null&&r.cost!==null) gross=r.revenue-r.cost;
+    if(r.revenue!==null&&r.revenue!==0&&gross!==null) margin=gross/r.revenue*100;
+    if(r.revenue!==null&&r.orders!==null&&r.orders!==0) avgCheck=r.revenue/r.orders;
+    var extraFilled=[r.log,r.pack,r.comm,r.other].some(function(x){return x!==null;});
+    var extraSum=null,profitExtra=null;
+    if(extraFilled){extraSum=(r.log||0)+(r.pack||0)+(r.comm||0)+(r.other||0);if(gross!==null) profitExtra=gross-extraSum;}
+    return {gross:gross,margin:margin,avgCheck:avgCheck,extraFilled:extraFilled,extraSum:extraSum,profitExtra:profitExtra};
   }
-
-  /* ---------- отображаемый список (с учётом фильтра и сортировки) ---------- */
-  function byId(id){ return rows.find(function(r){ return r.id === id; }); }
+  function byId(id){return rows.find(function(r){return r.id===id;});}
 
   function filteredRows(){
-    if (currentFilter === "all") return rows.slice();
-    var metric, needExtra = false;
-    if (currentFilter === "topGross") metric = function(r){ return calcRow(r).gross; };
-    else if (currentFilter === "topMargin") metric = function(r){ return calcRow(r).margin; };
-    else if (currentFilter === "topRevenue") metric = function(r){ return r.revenue; };
-    else if (currentFilter === "topOrders") metric = function(r){ return r.orders; };
-    else if (currentFilter === "topProfitExtra"){ metric = function(r){ var c = calcRow(r); return c.extraFilled ? c.profitExtra : null; }; needExtra = true; }
+    if(currentFilter==="all") return rows.slice();
+    var metric,needExtra=false;
+    if(currentFilter==="topGross") metric=function(r){return calcRow(r).gross;};
+    else if(currentFilter==="topMargin") metric=function(r){return calcRow(r).margin;};
+    else if(currentFilter==="topRevenue") metric=function(r){return r.revenue;};
+    else if(currentFilter==="topOrders") metric=function(r){return r.orders;};
+    else if(currentFilter==="topProfitExtra"){metric=function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;};needExtra=true;}
     else return rows.slice();
-    var list = rows.filter(function(r){
-      if (needExtra && !calcRow(r).extraFilled) return false;
-      var v = metric(r);
-      return v !== null && v !== undefined && isFinite(v);
-    });
-    list.sort(function(a,b){ return metric(b) - metric(a); });
-    if (!list.length) return [];
-    var third = metric(list[Math.min(2, list.length-1)]);
-    return list.filter(function(r){ return metric(r) >= third; });
+    var list=rows.filter(function(r){if(needExtra&&!calcRow(r).extraFilled) return false;var v=metric(r);return v!==null&&v!==undefined&&isFinite(v);});
+    list.sort(function(a,b){return metric(b)-metric(a);});
+    if(!list.length) return [];
+    var third=metric(list[Math.min(2,list.length-1)]);
+    return list.filter(function(r){return metric(r)>=third;});
   }
-
   function displayedRows(){
-    var base = filteredRows();
-    if (!viewOrder) return base;
-    var map = {};
-    base.forEach(function(r){ map[r.id] = r; });
-    var out = [];
-    viewOrder.forEach(function(id){ if (map[id]) out.push(map[id]); });
-    // на случай, если строк больше, чем в viewOrder (добавили после сортировки)
-    base.forEach(function(r){ if (viewOrder.indexOf(r.id) === -1) out.push(r); });
+    var base=filteredRows();
+    if(!viewOrder) return base;
+    var map={}; base.forEach(function(r){map[r.id]=r;});
+    var out=[]; viewOrder.forEach(function(id){if(map[id]) out.push(map[id]);});
+    base.forEach(function(r){if(viewOrder.indexOf(r.id)===-1) out.push(r);});
     return out;
   }
 
-  /* ---------- рендер таблицы ---------- */
   function render(){
-    var list = displayedRows();
-    var html = "";
+    var list=displayedRows(); var html="";
     list.forEach(function(r){
-      var c = calcRow(r);
-      var hasError = r._error || false;
-      html += '<tr data-id="'+r.id+'" class="'+(hasError?'row-error':'')+'">';
-      html += '<td><input class="cell-input text-input" data-field="name" value="'+escapeHtml(r.name)+'" placeholder="Название категории" maxlength="120"><div class="error-msg">'+(r._errorMsg||"")+'</div></td>';
-      html += '<td class="num"><input class="cell-input" data-field="orders" inputmode="numeric" value="'+escapeHtml(r.orders===null?"":r.orders)+'" placeholder="0"></td>';
-      html += '<td class="num"><input class="cell-input" data-field="revenue" inputmode="decimal" value="'+escapeHtml(r.revenue===null?"":r.revenue)+'" placeholder="0"></td>';
-      html += '<td class="num"><input class="cell-input" data-field="cost" inputmode="decimal" value="'+escapeHtml(r.cost===null?"":r.cost)+'" placeholder="0"></td>';
-      html += '<td class="num calc">'+fmtMoney(c.gross)+'</td>';
-      html += '<td class="num calc">'+fmtPct(c.margin)+'</td>';
-      html += '<td class="num calc">'+fmtMoney(c.avgCheck)+'</td>';
-      if (extraOpen){
-        html += '<td class="num"><input class="cell-input" data-field="log" inputmode="decimal" value="'+escapeHtml(r.log===null?"":r.log)+'" placeholder="0"></td>';
-        html += '<td class="num"><input class="cell-input" data-field="pack" inputmode="decimal" value="'+escapeHtml(r.pack===null?"":r.pack)+'" placeholder="0"></td>';
-        html += '<td class="num"><input class="cell-input" data-field="comm" inputmode="decimal" value="'+escapeHtml(r.comm===null?"":r.comm)+'" placeholder="0"></td>';
-        html += '<td class="num"><input class="cell-input" data-field="other" inputmode="decimal" value="'+escapeHtml(r.other===null?"":r.other)+'" placeholder="0"></td>';
-        html += '<td class="num calc">'+(c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>')+'</td>';
+      var c=calcRow(r); var hasError=r._error||false;
+      html+='<tr data-id="'+r.id+'" class="'+(hasError?'row-error':'')+'">';
+      html+='<td><input class="cell-input text-input" data-field="name" value="'+escapeHtml(r.name)+'" placeholder="Название категории" maxlength="120"><div class="error-msg">'+(r._errorMsg||"")+'</div></td>';
+      html+='<td class="num"><input class="cell-input" data-field="orders" inputmode="numeric" value="'+escapeHtml(r.orders===null?"":r.orders)+'" placeholder="0"></td>';
+      html+='<td class="num"><input class="cell-input" data-field="revenue" inputmode="decimal" value="'+escapeHtml(r.revenue===null?"":r.revenue)+'" placeholder="0"></td>';
+      html+='<td class="num"><input class="cell-input" data-field="cost" inputmode="decimal" value="'+escapeHtml(r.cost===null?"":r.cost)+'" placeholder="0"></td>';
+      html+='<td class="num calc">'+fmtMoney(c.gross)+'</td>';
+      html+='<td class="num calc">'+fmtPct(c.margin)+'</td>';
+      html+='<td class="num calc">'+fmtMoney(c.avgCheck)+'</td>';
+      if(extraOpen){
+        html+='<td class="num"><input class="cell-input" data-field="log" inputmode="decimal" value="'+escapeHtml(r.log===null?"":r.log)+'" placeholder="0"></td>';
+        html+='<td class="num"><input class="cell-input" data-field="pack" inputmode="decimal" value="'+escapeHtml(r.pack===null?"":r.pack)+'" placeholder="0"></td>';
+        html+='<td class="num"><input class="cell-input" data-field="comm" inputmode="decimal" value="'+escapeHtml(r.comm===null?"":r.comm)+'" placeholder="0"></td>';
+        html+='<td class="num"><input class="cell-input" data-field="other" inputmode="decimal" value="'+escapeHtml(r.other===null?"":r.other)+'" placeholder="0"></td>';
+        html+='<td class="num calc">'+(c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>')+'</td>';
       }
-      html += '<td><button class="btn-danger-outline" data-action="del" type="button" title="Удалить категорию">✕</button></td>';
-      html += '</tr>';
+      html+='<td><button class="btn-danger-outline" data-action="del" type="button" title="Удалить категорию">✕</button></td></tr>';
     });
-    if (!list.length){
-      html = '<tr><td colspan="'+(extraOpen?13:8)+'" class="muted" style="text-align:center;padding:24px;">Нет данных. Нажмите «+ Добавить категорию» или импортируйте файл.</td></tr>';
-    }
-    el.tbody.innerHTML = html;
-    el.table.classList.toggle("with-extra", extraOpen);
-    updateVisibility();
-    renderLeaders();
-    renderTotals();   // ВСЕГДА по полному rows, не по list
+    if(!list.length) html='<tr><td colspan="'+(extraOpen?13:8)+'" class="muted" style="text-align:center;padding:24px;">Нет данных. Нажмите «+ Добавить категорию» или импортируйте файл.</td></tr>';
+    el.tbody.innerHTML=html;
+    el.table.classList.toggle("with-extra",extraOpen);
+    updateVisibility(); renderLeaders(); renderTotals();
   }
-
   function updateVisibility(){
-    document.querySelectorAll(".extra-col").forEach(function(th){
-      th.classList.toggle("hidden", !extraOpen);
-    });
-    el.extraFootnote.classList.toggle("show", extraOpen);
-    el.formulaExtra.classList.toggle("hidden", !extraOpen);
-    el.sortProfitExtraOpt.classList.toggle("hidden", !extraOpen);
-    el.filterProfitExtraOpt.classList.toggle("hidden", !extraOpen);
-    el.totalsExtraBlock.classList.toggle("hidden", !extraOpen);
-    el.toggleExtra.textContent = extraOpen ? "Скрыть дополнительные расходы" : "Добавить дополнительные расходы";
-    if (!extraOpen){
-      if (el.sortField.value === "profitExtra") el.sortField.value = "revenue";
-      if (currentFilter === "topProfitExtra"){ currentFilter = "all"; el.filterSelect.value = "all"; }
-      viewOrder = null;
+    document.querySelectorAll(".extra-col").forEach(function(th){th.classList.toggle("hidden",!extraOpen);});
+    el.extraFootnote.classList.toggle("show",extraOpen);
+    el.formulaExtra.classList.toggle("hidden",!extraOpen);
+    el.sortProfitExtraOpt.classList.toggle("hidden",!extraOpen);
+    el.filterProfitExtraOpt.classList.toggle("hidden",!extraOpen);
+    el.totalsExtraBlock.classList.toggle("hidden",!extraOpen);
+    el.toggleExtra.textContent=extraOpen?"Скрыть дополнительные расходы":"Добавить дополнительные расходы";
+    if(!extraOpen){
+      if(el.sortField.value==="profitExtra") el.sortField.value="revenue";
+      if(currentFilter==="topProfitExtra"){currentFilter="all";el.filterSelect.value="all";}
+      viewOrder=null;
     }
   }
 
-  /* ---------- лидеры (глобальные, по всем категориям) ---------- */
-  function leadersFor(getter, needExtra){
-    var list = rows.filter(function(r){
-      if (needExtra && !calcRow(r).extraFilled) return false;
-      var v = getter(r);
-      return v !== null && v !== undefined && isFinite(v);
-    }).map(function(r){ return {name: r.name || "(без названия)", value: getter(r)}; });
-    if (!list.length) return [];
-    list.sort(function(a,b){ return b.value - a.value; });
-    var top = list[0].value;
-    return list.filter(function(x){ return x.value === top; });
+  function leadersFor(getter,needExtra){
+    var list=rows.filter(function(r){if(needExtra&&!calcRow(r).extraFilled) return false;var v=getter(r);return v!==null&&v!==undefined&&isFinite(v);}).map(function(r){return {name:r.name||"(без названия)",value:getter(r)};});
+    if(!list.length) return [];
+    list.sort(function(a,b){return b.value-a.value;});
+    var top=list[0].value;
+    return list.filter(function(x){return x.value===top;});
   }
-  function leaderItem(metricLabel, items, fmt){
-    if (!items.length){
-      return '<div class="leader-item"><span class="metric">'+escapeHtml(metricLabel)+'</span><span class="name muted">Нет данных</span></div>';
-    }
-    var names = items.map(function(x){ return escapeHtml(x.name); }).join(", ");
+  function leaderItem(metricLabel,items,fmt){
+    if(!items.length) return '<div class="leader-item"><span class="metric">'+escapeHtml(metricLabel)+'</span><span class="name muted">Нет данных</span></div>';
+    var names=items.map(function(x){return escapeHtml(x.name);}).join(", ");
     return '<div class="leader-item"><span class="metric">'+escapeHtml(metricLabel)+'</span><span class="name">'+names+'</span> <span class="val">'+fmt(items[0].value)+'</span></div>';
   }
   function renderLeaders(){
-    var html = "";
-    html += leaderItem("Валовая прибыль", leadersFor(function(r){return calcRow(r).gross;}, false), fmtMoney);
-    html += leaderItem("Выручка", leadersFor(function(r){return r.revenue;}, false), fmtMoney);
-    html += leaderItem("Количество заказов", leadersFor(function(r){return r.orders;}, false), fmtInt);
-    html += leaderItem("Маржинальность", leadersFor(function(r){return calcRow(r).margin;}, false), fmtPct);
-    if (extraOpen){
-      html += leaderItem("Прибыль с учётом доп. расходов", leadersFor(function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;}, true), fmtMoney);
-    }
-    el.leadersList.innerHTML = html;
+    var html="";
+    html+=leaderItem("Валовая прибыль",leadersFor(function(r){return calcRow(r).gross;},false),fmtMoney);
+    html+=leaderItem("Выручка",leadersFor(function(r){return r.revenue;},false),fmtMoney);
+    html+=leaderItem("Количество заказов",leadersFor(function(r){return r.orders;},false),fmtInt);
+    html+=leaderItem("Маржинальность",leadersFor(function(r){return calcRow(r).margin;},false),fmtPct);
+    if(extraOpen) html+=leaderItem("Прибыль с учётом доп. расходов",leadersFor(function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;},true),fmtMoney);
+    el.leadersList.innerHTML=html;
   }
 
-  /* ---------- итоги (всегда по полному rows) ---------- */
   function renderTotals(){
-    var sumOrders = 0, sumRevenue = 0, sumCost = 0, sumGross = 0;
-    var anyOrders = false, anyRevenue = false, anyCost = false, anyGross = false;
-    var extraCount = 0, extraSumTotal = 0, extraProfitTotal = 0, extraProfitAny = false;
+    var sumOrders=0,sumRevenue=0,sumCost=0,sumGross=0;
+    var anyOrders=false,anyRevenue=false,anyCost=false,anyGross=false;
+    var extraCount=0,extraProfitTotal=0,extraProfitAny=false;
     rows.forEach(function(r){
-      var c = calcRow(r);
-      if (r.orders !== null){ sumOrders += r.orders; anyOrders = true; }
-      if (r.revenue !== null){ sumRevenue += r.revenue; anyRevenue = true; }
-      if (r.cost !== null){ sumCost += r.cost; anyCost = true; }
-      if (c.gross !== null){ sumGross += c.gross; anyGross = true; }
-      if (c.extraFilled){
-        extraCount++;
-        extraSumTotal += (c.extraSum || 0);
-        if (c.profitExtra !== null){ extraProfitTotal += c.profitExtra; extraProfitAny = true; }
-      }
+      var c=calcRow(r);
+      if(r.orders!==null){sumOrders+=r.orders;anyOrders=true;}
+      if(r.revenue!==null){sumRevenue+=r.revenue;anyRevenue=true;}
+      if(r.cost!==null){sumCost+=r.cost;anyCost=true;}
+      if(c.gross!==null){sumGross+=c.gross;anyGross=true;}
+      if(c.extraFilled){extraCount++;if(c.profitExtra!==null){extraProfitTotal+=c.profitExtra;extraProfitAny=true;}}
     });
-    var totalRevenue = anyRevenue ? sumRevenue : null;
-    var totalGross = anyGross ? sumGross : null;
-    var totalMargin = (totalRevenue !== null && totalRevenue !== 0 && totalGross !== null) ? totalGross / totalRevenue * 100 : null;
-    var totalAvg = (totalRevenue !== null && anyOrders && sumOrders !== 0) ? totalRevenue / sumOrders : null;
-
-    el.totalsMain.innerHTML =
-      totalItem("Количество заказов", anyOrders ? fmtInt(sumOrders) : "—") +
-      totalItem("Выручка", anyRevenue ? fmtMoney(sumRevenue) : "—") +
-      totalItem("Закупочная стоимость", anyCost ? fmtMoney(sumCost) : "—") +
-      totalItem("Валовая прибыль", anyGross ? fmtMoney(sumGross) : "—") +
-      totalItem("Маржинальность", fmtPct(totalMargin)) +
-      totalItem("Средний чек", fmtMoney(totalAvg));
-
-    if (extraOpen){
-      el.totalsExtra.innerHTML =
-        totalItem("Общая прибыль с учётом доп. расходов", extraProfitAny ? fmtMoney(extraProfitTotal) : "—") +
-        totalItem("Учтено категорий", extraCount + " из " + rows.length);
-    }
+    var totalRevenue=anyRevenue?sumRevenue:null;
+    var totalGross=anyGross?sumGross:null;
+    var totalMargin=(totalRevenue!==null&&totalRevenue!==0&&totalGross!==null)?totalGross/totalRevenue*100:null;
+    var totalAvg=(totalRevenue!==null&&anyOrders&&sumOrders!==0)?totalRevenue/sumOrders:null;
+    el.totalsMain.innerHTML=
+      totalItem("Количество заказов",anyOrders?fmtInt(sumOrders):"—")+
+      totalItem("Выручка",anyRevenue?fmtMoney(sumRevenue):"—")+
+      totalItem("Закупочная стоимость",anyCost?fmtMoney(sumCost):"—")+
+      totalItem("Валовая прибыль",anyGross?fmtMoney(sumGross):"—")+
+      totalItem("Маржинальность",fmtPct(totalMargin))+
+      totalItem("Средний чек",fmtMoney(totalAvg));
+    if(extraOpen) el.totalsExtra.innerHTML=
+      totalItem("Общая прибыль с учётом доп. расходов",extraProfitAny?fmtMoney(extraProfitTotal):"—")+
+      totalItem("Учтено категорий",extraCount+" из "+rows.length);
   }
-  function totalItem(lbl, val){
-    return '<div class="total-item"><span class="lbl">'+escapeHtml(lbl)+'</span><span class="val">'+val+'</span></div>';
-  }
+  function totalItem(lbl,val){return '<div class="total-item"><span class="lbl">'+escapeHtml(lbl)+'</span><span class="val">'+val+'</span></div>';}
 
-  /* ---------- ввод ---------- */
-  el.tbody.addEventListener("input", function(e){
-    var input = e.target.closest(".cell-input");
-    if (!input) return;
-    var tr = input.closest("tr");
-    var id = parseInt(tr.getAttribute("data-id"), 10);
-    var r = byId(id);
-    if (!r) return;
-    var field = input.getAttribute("data-field");
-    var raw = input.value;
-    r._error = false; r._errorMsg = "";
-    input.classList.remove("invalid");
-    tr.classList.remove("row-error");
-
-    if (field === "name"){
-      r.name = raw;
-    } else if (field === "orders"){
-      var po = parseOrders(raw);
-      if (!po.ok){
-        markError(r, tr, input, po.fractional ? "Только целые числа" : (po.negative ? "Отрицательные значения запрещены" : "Некорректное число"));
-        r.orders = null;
-      } else r.orders = po.value;
-    } else {
-      var pn = parseNum(raw);
-      if (!pn.ok){
-        markError(r, tr, input, pn.negative ? "Отрицательные значения запрещены" : "Некорректное число");
-        r[field] = null;
-      } else r[field] = pn.value;
-    }
-    updateRowCalc(tr, r);
-    renderLeaders();
-    renderTotals();
-    scheduleSave();
+  el.tbody.addEventListener("input",function(e){
+    var input=e.target.closest(".cell-input"); if(!input) return;
+    var tr=input.closest("tr"); var id=parseInt(tr.getAttribute("data-id"),10); var r=byId(id); if(!r) return;
+    var field=input.getAttribute("data-field"); var raw=input.value;
+    r._error=false; r._errorMsg=""; input.classList.remove("invalid"); tr.classList.remove("row-error");
+    if(field==="name"){r.name=raw;}
+    else if(field==="orders"){var po=parseOrders(raw);if(!po.ok){markError(r,tr,input,po.fractional?"Только целые числа":(po.negative?"Отрицательные значения запрещены":"Некорректное число"));r.orders=null;}else r.orders=po.value;}
+    else{var pn=parseNum(raw);if(!pn.ok){markError(r,tr,input,pn.negative?"Отрицательные значения запрещены":"Некорректное число");r[field]=null;}else r[field]=pn.value;}
+    updateRowCalc(tr,r); renderLeaders(); renderTotals(); scheduleSave();
   });
-  function markError(r, tr, input, msg){
-    r._error = true; r._errorMsg = msg;
-    input.classList.add("invalid");
-    tr.classList.add("row-error");
-    var em = tr.querySelector(".error-msg");
-    if (em) em.textContent = msg;
+  function markError(r,tr,input,msg){r._error=true;r._errorMsg=msg;input.classList.add("invalid");tr.classList.add("row-error");var em=tr.querySelector(".error-msg");if(em) em.textContent=msg;}
+  function updateRowCalc(tr,r){
+    var c=calcRow(r); var tds=tr.querySelectorAll("td.calc");
+    if(tds[0]) tds[0].textContent=fmtMoney(c.gross);
+    if(tds[1]) tds[1].textContent=fmtPct(c.margin);
+    if(tds[2]) tds[2].textContent=fmtMoney(c.avgCheck);
+    if(extraOpen&&tds[3]) tds[3].innerHTML=c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>';
   }
-  function updateRowCalc(tr, r){
-    var c = calcRow(r);
-    var tds = tr.querySelectorAll("td.calc");
-    if (tds[0]) tds[0].textContent = fmtMoney(c.gross);
-    if (tds[1]) tds[1].textContent = fmtPct(c.margin);
-    if (tds[2]) tds[2].textContent = fmtMoney(c.avgCheck);
-    if (extraOpen && tds[3]) tds[3].innerHTML = c.extraFilled ? fmtMoney(c.profitExtra) : '<span class="muted">—</span>';
-  }
-
-  el.tbody.addEventListener("click", function(e){
-    var btn = e.target.closest('button[data-action="del"]');
-    if (!btn) return;
-    var tr = btn.closest("tr");
-    var id = parseInt(tr.getAttribute("data-id"), 10);
-    var r = byId(id);
-    if (!r) return;
-    var label = r.name ? '«'+r.name+'»' : "эту категорию";
-    if (window.confirm("Удалить " + label + "? Данные будут потеряны.")){
-      rows = rows.filter(function(x){ return x.id !== id; });
-      if (viewOrder) viewOrder = viewOrder.filter(function(x){ return x !== id; });
-      render();
-      scheduleSave();
+  el.tbody.addEventListener("click",function(e){
+    var btn=e.target.closest('button[data-action="del"]'); if(!btn) return;
+    var tr=btn.closest("tr"); var id=parseInt(tr.getAttribute("data-id"),10); var r=byId(id); if(!r) return;
+    var label=r.name?'«'+r.name+'»':"эту категорию";
+    if(window.confirm("Удалить "+label+"? Данные будут потеряны.")){
+      rows=rows.filter(function(x){return x.id!==id;});
+      if(viewOrder) viewOrder=viewOrder.filter(function(x){return x!==id;});
+      render(); scheduleSave();
     }
   });
 
-  /* ---------- добавление ---------- */
   function addRow(data){
-    if (rows.length >= MAX_CATEGORIES){
-      alert("Достигнут лимит: не более " + MAX_CATEGORIES + " категорий.");
-      return false;
-    }
-    rows.push({
-      id: nextId++,
-      name: data && data.name != null ? data.name : "",
-      orders: data && data.orders !== undefined ? data.orders : null,
-      revenue: data && data.revenue !== undefined ? data.revenue : null,
-      cost: data && data.cost !== undefined ? data.cost : null,
-      log: data && data.log !== undefined ? data.log : null,
-      pack: data && data.pack !== undefined ? data.pack : null,
-      comm: data && data.comm !== undefined ? data.comm : null,
-      other: data && data.other !== undefined ? data.other : null,
-      _error:false, _errorMsg:""
-    });
+    if(rows.length>=MAX_CATEGORIES){alert("Достигнут лимит: не более "+MAX_CATEGORIES+" категорий.");return false;}
+    rows.push({id:nextId++,name:data&&data.name!=null?data.name:"",orders:data&&data.orders!==undefined?data.orders:null,revenue:data&&data.revenue!==undefined?data.revenue:null,cost:data&&data.cost!==undefined?data.cost:null,log:data&&data.log!==undefined?data.log:null,pack:data&&data.pack!==undefined?data.pack:null,comm:data&&data.comm!==undefined?data.comm:null,other:data&&data.other!==undefined?data.other:null,_error:false,_errorMsg:""});
     return true;
   }
-  el.addCategory.addEventListener("click", function(){
-    if (addRow({})){ render(); scheduleSave(); }
-  });
+  el.addCategory.addEventListener("click",function(){if(addRow({})){render();scheduleSave();}});
+  el.toggleExtra.addEventListener("click",function(){extraOpen=!extraOpen;render();scheduleSave();});
 
-  el.toggleExtra.addEventListener("click", function(){
-    extraOpen = !extraOpen;
-    render();
-    scheduleSave();
-  });
-
-  /* ---------- сортировка ---------- */
   function metricFor(field){
-    return {
-      revenue: function(r){ return r.revenue; },
-      gross: function(r){ return calcRow(r).gross; },
-      margin: function(r){ return calcRow(r).margin; },
-      orders: function(r){ return r.orders; },
-      avgCheck: function(r){ return calcRow(r).avgCheck; },
-      profitExtra: function(r){ var c = calcRow(r); return c.extraFilled ? c.profitExtra : null; }
-    }[field];
+    return {revenue:function(r){return r.revenue;},gross:function(r){return calcRow(r).gross;},margin:function(r){return calcRow(r).margin;},orders:function(r){return r.orders;},avgCheck:function(r){return calcRow(r).avgCheck;},profitExtra:function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;}}[field];
   }
-  el.applySort.addEventListener("click", function(){
-    var field = el.sortField.value;
-    var getter = metricFor(field);
-    if (!getter) return;
-    var dir = el.sortAsc.checked ? 1 : -1;
-    var base = filteredRows();
-    base.sort(function(a,b){
-      var va = getter(a), vb = getter(b);
-      var na = (va === null || va === undefined || !isFinite(va));
-      var nb = (vb === null || vb === undefined || !isFinite(vb));
-      if (na && nb) return 0;
-      if (na) return 1;
-      if (nb) return -1;
-      return (va - vb) * dir;
-    });
-    viewOrder = base.map(function(r){ return r.id; });
-    render();
-    scheduleSave();
+  el.applySort.addEventListener("click",function(){
+    var getter=metricFor(el.sortField.value); if(!getter) return;
+    var dir=el.sortAsc.checked?1:-1; var base=filteredRows();
+    base.sort(function(a,b){var va=getter(a),vb=getter(b);var na=(va===null||va===undefined||!isFinite(va));var nb=(vb===null||vb===undefined||!isFinite(vb));if(na&&nb)return 0;if(na)return 1;if(nb)return -1;return (va-vb)*dir;});
+    viewOrder=base.map(function(r){return r.id;}); render(); scheduleSave();
   });
-  el.resetSort.addEventListener("click", function(){
-    viewOrder = null;
-    el.sortAsc.checked = false;
-    render();
-    scheduleSave();
-  });
+  el.resetSort.addEventListener("click",function(){viewOrder=null;el.sortAsc.checked=false;render();scheduleSave();});
+  el.filterSelect.addEventListener("change",function(){currentFilter=el.filterSelect.value;viewOrder=null;el.sortAsc.checked=false;render();scheduleSave();});
 
-  /* ---------- фильтр «Показать категории» ---------- */
-  el.filterSelect.addEventListener("change", function(){
-    currentFilter = el.filterSelect.value;
-    viewOrder = null; // при смене фильтра сбрасываем порядок
-    el.sortAsc.checked = false;
-    render();
-    scheduleSave();
-  });
-
-  /* ---------- localStorage ---------- */
-  var saveTimer = null;
-  function scheduleSave(){
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(save, 300);
-  }
+  var saveTimer=null;
+  function scheduleSave(){if(saveTimer) clearTimeout(saveTimer);saveTimer=setTimeout(save,300);}
   function save(){
     try{
-      var payload = {
-        rows: rows.map(function(r){
-          return {id:r.id, name:r.name, orders:r.orders, revenue:r.revenue, cost:r.cost,
-                  log:r.log, pack:r.pack, comm:r.comm, other:r.other};
-        }),
-        extraOpen: extraOpen,
-        nextId: nextId,
-        periodStart: el.periodStart.value,
-        periodEnd: el.periodEnd.value,
-        currentFilter: currentFilter
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      var payload={rows:rows.map(function(r){return {id:r.id,name:r.name,orders:r.orders,revenue:r.revenue,cost:r.cost,log:r.log,pack:r.pack,comm:r.comm,other:r.other};}),extraOpen:extraOpen,nextId:nextId,periodStart:el.periodStart.value,periodEnd:el.periodEnd.value,currentFilter:currentFilter};
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
     }catch(e){}
   }
   function load(){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return false;
-      var p = JSON.parse(raw);
-      if (!p || !Array.isArray(p.rows)) return false;
-      rows = p.rows.map(function(r){
-        return {
-          id: r.id || nextId++,
-          name: r.name || "",
-          orders: (typeof r.orders === "number") ? r.orders : null,
-          revenue: (typeof r.revenue === "number") ? r.revenue : null,
-          cost: (typeof r.cost === "number") ? r.cost : null,
-          log: (typeof r.log === "number") ? r.log : null,
-          pack: (typeof r.pack === "number") ? r.pack : null,
-          comm: (typeof r.comm === "number") ? r.comm : null,
-          other: (typeof r.other === "number") ? r.other : null,
-          _error:false, _errorMsg:""
-        };
-      });
-      nextId = p.nextId || (rows.reduce(function(m,r){return Math.max(m,r.id);},0) + 1);
-      extraOpen = !!p.extraOpen;
-      if (p.periodStart) el.periodStart.value = p.periodStart;
-      if (p.periodEnd) el.periodEnd.value = p.periodEnd;
-      if (p.currentFilter) { currentFilter = p.currentFilter; el.filterSelect.value = p.currentFilter; }
+      var raw=localStorage.getItem(STORAGE_KEY); if(!raw) return false;
+      var p=JSON.parse(raw); if(!p||!Array.isArray(p.rows)) return false;
+      rows=p.rows.map(function(r){return {id:r.id||nextId++,name:r.name||"",orders:(typeof r.orders==="number")?r.orders:null,revenue:(typeof r.revenue==="number")?r.revenue:null,cost:(typeof r.cost==="number")?r.cost:null,log:(typeof r.log==="number")?r.log:null,pack:(typeof r.pack==="number")?r.pack:null,comm:(typeof r.comm==="number")?r.comm:null,other:(typeof r.other==="number")?r.other:null,_error:false,_errorMsg:""};});
+      nextId=p.nextId||(rows.reduce(function(m,r){return Math.max(m,r.id);},0)+1);
+      extraOpen=!!p.extraOpen;
+      if(p.periodStart) el.periodStart.value=p.periodStart;
+      if(p.periodEnd) el.periodEnd.value=p.periodEnd;
+      if(p.currentFilter){currentFilter=p.currentFilter;el.filterSelect.value=p.currentFilter;}
       return true;
-    }catch(e){ return false; }
+    }catch(e){return false;}
   }
 
-  /* ---------- Excel ---------- */
-  var TEMPLATE_HEADERS = [
-    "Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽",
-    "Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽"
-  ];
-  el.downloadTemplate.addEventListener("click", function(){
-    var wb = XLSX.utils.book_new();
-    var ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS.slice()]);
-    ws["!cols"] = [{wch:24},{wch:28},{wch:16},{wch:22},{wch:14},{wch:26},{wch:24},{wch:18}];
-    XLSX.utils.book_append_sheet(wb, ws, "Шаблон");
-    XLSX.writeFile(wb, "Шаблон_категории.xlsx");
-  });
+  /* ================== ВСТРОЕННЫЙ EXCEL (без CDN) ================== */
+  function crc32(bytes){
+    var c,crc=0xFFFFFFFF;
+    for(var i=0;i<bytes.length;i++){c=(crc^bytes[i])&0xFF;for(var k=0;k<8;k++) c=c&1?(c>>>1)^0xEDB88320:(c>>>1);crc=(crc>>>8)^c;}
+    return (crc^0xFFFFFFFF)>>>0;
+  }
+  function strToUtf8(str){return new TextEncoder().encode(str);}
+  function u16(v){return [v&0xFF,(v>>8)&0xFF];}
+  function u32(v){return [v&0xFF,(v>>8)&0xFF,(v>>16)&0xFF,(v>>24)&0xFF];}
+  function makeZip(files){
+    var localParts=[], centralParts=[], offset=0;
+    files.forEach(function(f){
+      var nameBytes=strToUtf8(f.name), data=f.data, crc=crc32(data);
+      var local=[]; local=local.concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameBytes.length),u16(0));
+      var localHeader=new Uint8Array(local);
+      var localRec=new Uint8Array(localHeader.length+nameBytes.length+data.length);
+      localRec.set(localHeader,0); localRec.set(nameBytes,localHeader.length); localRec.set(data,localHeader.length+nameBytes.length);
+      localParts.push(localRec);
+      var central=[]; central=central.concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameBytes.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+      var centralHeader=new Uint8Array(central);
+      var centralRec=new Uint8Array(centralHeader.length+nameBytes.length);
+      centralRec.set(centralHeader,0); centralRec.set(nameBytes,centralHeader.length);
+      centralParts.push(centralRec);
+      offset+=localRec.length;
+    });
+    var centralSize=centralParts.reduce(function(s,p){return s+p.length;},0);
+    var end=[]; end=end.concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(centralSize),u32(offset),u16(0));
+    var endRec=new Uint8Array(end);
+    var total=offset+centralSize+endRec.length;
+    var out=new Uint8Array(total); var pos=0;
+    localParts.forEach(function(p){out.set(p,pos);pos+=p.length;});
+    centralParts.forEach(function(p){out.set(p,pos);pos+=p.length;});
+    out.set(endRec,pos);
+    return out;
+  }
+  function xlsxEscape(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function colLetter(n){var s="";while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
 
-  el.importBtn.addEventListener("click", function(){ el.importFile.click(); });
-  el.importFile.addEventListener("change", function(e){
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev){
-      try{
-        var data = new Uint8Array(ev.target.result);
-        var wb = XLSX.read(data, {type:"array"});
-        var ws = wb.Sheets[wb.SheetNames[0]];
-        var arr = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
-        if (!arr || arr.length === 0){ alert("Файл пуст."); return; }
-        var headerRow = arr[0].map(function(h){ return String(h == null ? "" : h).trim().toLowerCase(); });
-        function findIdx(keys){
-          for (var i=0;i<headerRow.length;i++)
-            for (var k=0;k<keys.length;k++)
-              if (headerRow[i].indexOf(keys[k]) !== -1) return i;
-          return -1;
-        }
-        var idx = {
-          name: findIdx(["категория","название"]),
-          orders: findIdx(["количество","заказ"]),
-          revenue: findIdx(["выручка"]),
-          cost: findIdx(["закупочная","закупка"]),
-          log: findIdx(["логистика"]),
-          pack: findIdx(["упаковка"]),
-          comm: findIdx(["комисси","эквайринг"]),
-          other: findIdx(["прочие"])
-        };
-        if (idx.name === -1 || idx.revenue === -1){
-          alert("В файле не найдены обязательные колонки: «Категория» и/или «Выручка, ₽».");
+  function buildSheetXml(aoa, opts){
+    opts = opts || {};
+    var colWidths = opts.colWidths || [];
+    var headerStyle = opts.headerStyle !== false;
+    var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+    if (colWidths.length){
+      xml += '<cols>';
+      colWidths.forEach(function(w, i){
+        xml += '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';
+      });
+      xml += '</cols>';
+    }
+    xml += '<sheetData>';
+    aoa.forEach(function(row, ri){
+      var isHeader = headerStyle && ri === 0;
+      if (isHeader) xml += '<row r="'+(ri+1)+'" ht="34" customHeight="1">';
+      else xml += '<row r="'+(ri+1)+'">';
+      row.forEach(function(val, ci){
+        var ref = colLetter(ci+1)+(ri+1);
+        var styleIdx = isHeader ? 1 : 0;
+        if (val === null || val === undefined || val === ""){
+          xml += '<c r="'+ref+'" s="'+styleIdx+'"/>';
           return;
         }
-        var imported = [], errors = [];
-        for (var i=1;i<arr.length;i++){
-          var row = arr[i];
-          if (!row) continue;
-          var name = idx.name >= 0 && row[idx.name] != null ? String(row[idx.name]).trim() : "";
-          var rev = idx.revenue >= 0 ? parseNum(row[idx.revenue]) : {ok:true,value:null,empty:true};
-          var ord = idx.orders >= 0 ? parseOrders(row[idx.orders]) : {ok:true,value:null,empty:true};
-          var cst = idx.cost >= 0 ? parseNum(row[idx.cost]) : {ok:true,value:null,empty:true};
-          var lg  = idx.log >= 0 ? parseNum(row[idx.log]) : {ok:true,value:null,empty:true};
-          var pk  = idx.pack >= 0 ? parseNum(row[idx.pack]) : {ok:true,value:null,empty:true};
-          var cm  = idx.comm >= 0 ? parseNum(row[idx.comm]) : {ok:true,value:null,empty:true};
-          var ot  = idx.other >= 0 ? parseNum(row[idx.other]) : {ok:true,value:null,empty:true};
-          var rowHasData = name || !rev.empty || !ord.empty || !cst.empty || !lg.empty || !pk.empty || !cm.empty || !ot.empty;
-          if (!rowHasData) continue;
-          var bad = [];
-          if (!rev.ok) bad.push("выручка");
-          if (!ord.ok) bad.push("заказы");
-          if (!cst.ok) bad.push("закупка");
-          if (!lg.ok) bad.push("логистика");
-          if (!pk.ok) bad.push("упаковка");
-          if (!cm.ok) bad.push("комиссии");
-          if (!ot.ok) bad.push("прочие");
-          if (bad.length){ errors.push("Строка " + (i+1) + ": " + bad.join(", ")); continue; }
-          imported.push({name:name, orders:ord.value, revenue:rev.value, cost:cst.value,
-                         log:lg.value, pack:pk.value, comm:cm.value, other:ot.value});
+        if (typeof val === "number" && isFinite(val)){
+          xml += '<c r="'+ref+'" s="'+styleIdx+'"><v>'+val+'</v></c>';
+        } else {
+          xml += '<c r="'+ref+'" s="'+styleIdx+'" t="inlineStr"><is><t xml:space="preserve">'+xlsxEscape(val)+'</t></is></c>';
         }
-        if (errors.length){
-          alert("Импорт завершён с ошибками:\n" + errors.slice(0,10).join("\n") + (errors.length>10 ? "\n…" : "") + "\n\nКорректные строки импортированы.");
-        }
-        if (!imported.length){ alert("Не найдено ни одной корректной строки."); return; }
-        if (imported.length > MAX_CATEGORIES){
-          alert("В файле " + imported.length + " категорий. Импортированы первые " + MAX_CATEGORIES + ".");
-          imported = imported.slice(0, MAX_CATEGORIES);
-        }
-        if (rows.length && !window.confirm("Заменить текущие данные данными из файла?")) return;
-        rows = []; nextId = 1; viewOrder = null; currentFilter = "all"; el.filterSelect.value = "all";
-        imported.forEach(function(d){ addRow(d); });
-        if (imported.some(function(d){ return d.log !== null || d.pack !== null || d.comm !== null || d.other !== null; })){
-          extraOpen = true;
-        }
-        render();
-        scheduleSave();
-      }catch(err){
-        alert("Не удалось прочитать файл: " + err.message);
+      });
+      xml += '</row>';
+    });
+    xml += '</sheetData></worksheet>';
+    return xml;
+  }
+
+  function buildXlsx(aoa, opts){
+    opts = opts || {};
+    var files = [];
+    var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<fonts count="2">'
+      +   '<font><sz val="11"/><name val="Calibri"/></font>'
+      +   '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+      + '</fonts>'
+      + '<fills count="3">'
+      +   '<fill><patternFill patternType="none"/></fill>'
+      +   '<fill><patternFill patternType="gray125"/></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FF0D9488"/><bgColor indexed="64"/></patternFill></fill>'
+      + '</fills>'
+      + '<borders count="2">'
+      +   '<border><left/><right/><top/><bottom/><diagonal/></border>'
+      +   '<border><left style="thin"><color rgb="FF0F766E"/></left><right style="thin"><color rgb="FF0F766E"/></right><top style="thin"><color rgb="FF0F766E"/></top><bottom style="thin"><color rgb="FF0F766E"/></bottom><diagonal/></border>'
+      + '</borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+      + '<cellXfs count="2">'
+      +   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      +   '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+      + '</cellXfs>'
+      + '</styleSheet>';
+
+    files.push({name:"[Content_Types].xml",data:strToUtf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>')});
+    files.push({name:"_rels/.rels",data:strToUtf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')});
+    files.push({name:"xl/workbook.xml",data:strToUtf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Лист1" sheetId="1" r:id="rId1"/></sheets></workbook>')});
+    files.push({name:"xl/_rels/workbook.xml.rels",data:strToUtf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>')});
+    files.push({name:"xl/worksheets/sheet1.xml",data:strToUtf8(buildSheetXml(aoa, opts))});
+    files.push({name:"xl/styles.xml",data:strToUtf8(stylesXml)});
+    return makeZip(files);
+  }
+
+  function bytesToBase64(bytes){
+    var bin="", chunk=0x8000;
+    for(var i=0;i<bytes.length;i+=chunk){
+      bin+=String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+    }
+    return btoa(bin);
+  }
+  function downloadBlob(bytes,filename,mime){
+    mime = mime || "application/octet-stream";
+    try{
+      var blob=new Blob([bytes],{type:mime});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url; a.download=filename; a.rel="noopener";
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},300);
+      showFallbackLink(bytes, filename, mime);
+      return;
+    }catch(e){}
+    try{
+      var b64 = bytesToBase64(bytes);
+      var dataUrl = "data:"+mime+";base64,"+b64;
+      var w = window.open(dataUrl, "_blank");
+      if (w) { showFallbackLink(bytes, filename, mime); return; }
+    }catch(e){}
+    showFallbackLink(bytes, filename, mime);
+  }
+  function showFallbackLink(bytes, filename, mime){
+    var old = document.getElementById("__dl_fallback");
+    if (old) old.parentNode.removeChild(old);
+    try{
+      var blob = new Blob([bytes], {type:mime});
+      var url = URL.createObjectURL(blob);
+      var box = document.createElement("div");
+      box.id = "__dl_fallback";
+      box.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#f0fdfa;border:1.5px solid #0d9488;border-radius:10px;padding:12px 14px;font-size:14px;color:#115e59;box-shadow:0 6px 20px rgba(0,0,0,.12);";
+      box.innerHTML = 'Если файл не скачался автоматически — <a href="'+url+'" download="'+filename.replace(/"/g,"&quot;")+'" style="color:#0d9488;font-weight:600;text-decoration:underline;">нажмите сюда, чтобы скачать '+filename.replace(/</g,"&lt;")+'</a> <button type="button" style="margin-left:10px;background:#fff;border:1.5px solid #0d9488;color:#0d9488;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;" onclick="var b=document.getElementById(\'__dl_fallback\');if(b)b.parentNode.removeChild(b);">Закрыть</button>';
+      document.body.appendChild(box);
+      setTimeout(function(){
+        if (box.parentNode) box.parentNode.removeChild(box);
+        URL.revokeObjectURL(url);
+      }, 60000);
+    }catch(e){}
+  }
+
+  function findEocd(buf){
+    var dv=new DataView(buf);
+    for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--){
+      if(dv.getUint32(i,true)===0x06054b50) return i;
+    }
+    return -1;
+  }
+  async function inflateRaw(bytes){
+    if(typeof DecompressionStream==="undefined") throw new Error("Браузер не поддерживает распаковку XLSX (DecompressionStream). Обновите браузер.");
+    var ds=new DecompressionStream("deflate-raw");
+    var stream=new Blob([bytes]).stream().pipeThrough(ds);
+    var ab=await new Response(stream).arrayBuffer();
+    return new Uint8Array(ab);
+  }
+  async function readZip(buf){
+    var eocd=findEocd(buf); if(eocd===-1) throw new Error("Не удалось прочитать XLSX (нет EOCD).");
+    var dv=new DataView(buf);
+    var cdCount=dv.getUint16(eocd+10,true);
+    var cdOffset=dv.getUint32(eocd+16,true);
+    var files={};
+    var p=cdOffset;
+    for(var i=0;i<cdCount;i++){
+      if(dv.getUint32(p,true)!==0x02014b50) break;
+      var method=dv.getUint16(p+10,true);
+      var compSize=dv.getUint32(p+20,true);
+      var uncompSize=dv.getUint32(p+24,true);
+      var nameLen=dv.getUint16(p+28,true);
+      var extraLen=dv.getUint16(p+30,true);
+      var commentLen=dv.getUint16(p+32,true);
+      var localOffset=dv.getUint32(p+42,true);
+      var nameBytes=new Uint8Array(buf, p+46, nameLen);
+      var name=new TextDecoder("utf-8").decode(nameBytes);
+      var lh=dv.getUint32(localOffset,true);
+      if(lh!==0x04034b50) throw new Error("Повреждён local header ZIP.");
+      var lNameLen=dv.getUint16(localOffset+26,true);
+      var lExtraLen=dv.getUint16(localOffset+28,true);
+      var dataStart=localOffset+30+lNameLen+lExtraLen;
+      var compBytes=new Uint8Array(buf, dataStart, compSize);
+      var raw;
+      if(method===0){raw=compBytes;}
+      else if(method===8){raw=await inflateRaw(compBytes);}
+      else throw new Error("Неподдерживаемый метод сжатия: "+method);
+      files[name]=raw;
+      p+=46+nameLen+extraLen+commentLen;
+    }
+    return files;
+  }
+  function parseXmlText(s){return new DOMParser().parseFromString(s,"application/xml");}
+  async function parseXlsxToAoa(buf){
+    var files=await readZip(buf);
+    var dec=new TextDecoder("utf-8");
+    var sheetKey=Object.keys(files).find(function(k){return /^xl\/worksheets\/sheet1\.xml$/.test(k);});
+    if(!sheetKey) throw new Error("В файле нет листа sheet1.xml.");
+    var shared=[];
+    if(files["xl/sharedStrings.xml"]){
+      var sx=dec.decode(files["xl/sharedStrings.xml"]);
+      var sdoc=parseXmlText(sx);
+      var sis=sdoc.getElementsByTagName("si");
+      for(var i=0;i<sis.length;i++){
+        var ts=sis[i].getElementsByTagName("t");
+        var str=""; for(var j=0;j<ts.length;j++) str+=ts[j].textContent;
+        shared.push(str);
       }
+    }
+    var sx2=dec.decode(files[sheetKey]);
+    var doc=parseXmlText(sx2);
+    var rowEls=doc.getElementsByTagName("row");
+    var aoa=[];
+    for(var r=0;r<rowEls.length;r++){
+      var row=rowEls[r];
+      var cells=row.getElementsByTagName("c");
+      var arr=[];
+      for(var c=0;c<cells.length;c++){
+        var cell=cells[c];
+        var ref=cell.getAttribute("r")||"";
+        var colIdx=0;
+        var m=ref.match(/^([A-Z]+)/);
+        if(m){var letters=m[1];for(var k=0;k<letters.length;k++) colIdx=colIdx*26+(letters.charCodeAt(k)-64);colIdx-=1;}
+        var t=cell.getAttribute("t");
+        var vEl=cell.getElementsByTagName("v")[0];
+        var isEl=cell.getElementsByTagName("is")[0];
+        var val=null;
+        if(t==="s"&&vEl){val=shared[parseInt(vEl.textContent,10)];}
+        else if(t==="inlineStr"&&isEl){var tEls=isEl.getElementsByTagName("t");var s="";for(var z=0;z<tEls.length;z++) s+=tEls[z].textContent;val=s;}
+        else if(vEl){val=vEl.textContent;}
+        arr[colIdx]=val;
+      }
+      for(var q=0;q<arr.length;q++){if(arr[q]===undefined) arr[q]=null;}
+      aoa.push(arr);
+    }
+    return aoa;
+  }
+
+  /* ---------- кнопки Excel ---------- */
+  var TEMPLATE_HEADERS=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽"];
+  el.downloadTemplate.addEventListener("click",function(){
+    try{
+      var widths = [26, 22, 18, 24, 16, 28, 26, 20];
+      var bytes = buildXlsx([TEMPLATE_HEADERS.slice()], {colWidths: widths, headerStyle: true});
+      downloadBlob(bytes, "Шаблон_категории.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    }catch(e){ alert("Ошибка при создании шаблона: " + e.message); }
+  });
+
+  el.importBtn.addEventListener("click",function(){el.importFile.click();});
+  el.importFile.addEventListener("change",function(e){
+    var file=e.target.files&&e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=async function(ev){
+      try{
+        var buf=ev.target.result;
+        var arr=await parseXlsxToAoa(buf);
+        if(!arr||!arr.length){alert("Файл пуст.");return;}
+        var headerRow=arr[0].map(function(h){return String(h==null?"":h).trim().toLowerCase();});
+        function findIdx(keys){for(var i=0;i<headerRow.length;i++)for(var k=0;k<keys.length;k++)if(headerRow[i].indexOf(keys[k])!==-1) return i;return -1;}
+        var idx={name:findIdx(["категория","название"]),orders:findIdx(["количество","заказ"]),revenue:findIdx(["выручка"]),cost:findIdx(["закупочная","закупка"]),log:findIdx(["логистика"]),pack:findIdx(["упаковка"]),comm:findIdx(["комисси","эквайринг"]),other:findIdx(["прочие"])};
+        if(idx.name===-1||idx.revenue===-1){alert("В файле не найдены обязательные колонки: «Категория» и/или «Выручка, ₽».");return;}
+        var imported=[],errors=[];
+        for(var i=1;i<arr.length;i++){
+          var row=arr[i]; if(!row) continue;
+          var name=idx.name>=0&&row[idx.name]!=null?String(row[idx.name]).trim():"";
+          var rev=idx.revenue>=0?parseNum(row[idx.revenue]):{ok:true,value:null,empty:true};
+          var ord=idx.orders>=0?parseOrders(row[idx.orders]):{ok:true,value:null,empty:true};
+          var cst=idx.cost>=0?parseNum(row[idx.cost]):{ok:true,value:null,empty:true};
+          var lg=idx.log>=0?parseNum(row[idx.log]):{ok:true,value:null,empty:true};
+          var pk=idx.pack>=0?parseNum(row[idx.pack]):{ok:true,value:null,empty:true};
+          var cm=idx.comm>=0?parseNum(row[idx.comm]):{ok:true,value:null,empty:true};
+          var ot=idx.other>=0?parseNum(row[idx.other]):{ok:true,value:null,empty:true};
+          var rowHasData=name||!rev.empty||!ord.empty||!cst.empty||!lg.empty||!pk.empty||!cm.empty||!ot.empty;
+          if(!rowHasData) continue;
+          var bad=[]; if(!rev.ok) bad.push("выручка"); if(!ord.ok) bad.push("заказы"); if(!cst.ok) bad.push("закупка"); if(!lg.ok) bad.push("логистика"); if(!pk.ok) bad.push("упаковка"); if(!cm.ok) bad.push("комиссии"); if(!ot.ok) bad.push("прочие");
+          if(bad.length){errors.push("Строка "+(i+1)+": "+bad.join(", "));continue;}
+          imported.push({name:name,orders:ord.value,revenue:rev.value,cost:cst.value,log:lg.value,pack:pk.value,comm:cm.value,other:ot.value});
+        }
+        if(errors.length) alert("Импорт завершён с ошибками:\n"+errors.slice(0,10).join("\n")+(errors.length>10?"\n…":"")+"\n\nКорректные строки импортированы.");
+        if(!imported.length){alert("Не найдено ни одной корректной строки.");return;}
+        if(imported.length>MAX_CATEGORIES){alert("В файле "+imported.length+" категорий. Импортированы первые "+MAX_CATEGORIES+".");imported=imported.slice(0,MAX_CATEGORIES);}
+        if(rows.length&&!window.confirm("Заменить текущие данные данными из файла?")) return;
+        rows=[];nextId=1;viewOrder=null;currentFilter="all";el.filterSelect.value="all";
+        imported.forEach(function(d){addRow(d);});
+        if(imported.some(function(d){return d.log!==null||d.pack!==null||d.comm!==null||d.other!==null;})) extraOpen=true;
+        render();scheduleSave();
+      }catch(err){alert("Не удалось прочитать файл: "+err.message);}
     };
     reader.readAsArrayBuffer(file);
-    el.importFile.value = "";
+    el.importFile.value="";
   });
 
-  el.exportBtn.addEventListener("click", function(){
-    var headers = ["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Валовая прибыль, ₽","Маржинальность, %","Средний чек, ₽"];
-    if (extraOpen){
-      headers = headers.concat(["Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽","Прибыль с учётом доп. расходов, ₽"]);
-    }
-    var aoa = [headers];
-    rows.forEach(function(r){
-      var c = calcRow(r);
-      var line = [r.name, r.orders, r.revenue, r.cost, numOrNull(c.gross), numOrNull(c.margin), numOrNull(c.avgCheck)];
-      if (extraOpen) line = line.concat([r.log, r.pack, r.comm, r.other, c.extraFilled ? numOrNull(c.profitExtra) : null]);
-      aoa.push(line);
-    });
-    var wb = XLSX.utils.book_new();
-    var ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws["!cols"] = headers.map(function(h){ return {wch: Math.max(14, Math.min(30, h.length + 4))}; });
-    XLSX.utils.book_append_sheet(wb, ws, "Результаты");
-    var fname = "Результаты_категории";
-    if (el.periodStart.value || el.periodEnd.value){
-      fname += "_" + (el.periodStart.value || "") + "_" + (el.periodEnd.value || "");
-    }
-    XLSX.writeFile(wb, fname + ".xlsx");
+  el.exportBtn.addEventListener("click",function(){
+    try{
+      var headers=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Валовая прибыль, ₽","Маржинальность, %","Средний чек, ₽"];
+      if(extraOpen) headers=headers.concat(["Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽","Прибыль с учётом доп. расходов, ₽"]);
+      var aoa=[headers];
+      rows.forEach(function(r){
+        var c=calcRow(r);
+        var line=[r.name,r.orders,r.revenue,r.cost,numOrNull(c.gross),numOrNull(c.margin),numOrNull(c.avgCheck)];
+        if(extraOpen) line=line.concat([r.log,r.pack,r.comm,r.other,c.extraFilled?numOrNull(c.profitExtra):null]);
+        aoa.push(line);
+      });
+      var widths = [26, 22, 18, 24, 20, 18, 18];
+      if (extraOpen) widths = widths.concat([16, 28, 26, 20, 30]);
+      var bytes = buildXlsx(aoa, {colWidths: widths, headerStyle: true});
+      var fname="Результаты_категории";
+      if(el.periodStart.value||el.periodEnd.value) fname+="_"+(el.periodStart.value||"")+"_"+(el.periodEnd.value||"");
+      downloadBlob(bytes,fname+".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    }catch(e){alert("Ошибка при экспорте: "+e.message);}
   });
 
-  /* ---------- логотип ---------- */
-  el.logoImg.addEventListener("error", function(){
-    el.logoImg.classList.add("hidden");
-    el.logoFallback.classList.remove("hidden");
+  el.logoImg.addEventListener("error",function(){el.logoImg.classList.add("hidden");el.logoFallback.classList.remove("hidden");});
+  el.calcBtn.addEventListener("click",function(){
+    var s=el.periodStart.value,e=el.periodEnd.value;
+    if(s&&e&&s>e){alert("Дата окончания периода не может быть раньше даты начала.");return;}
+    render();scheduleSave();alert("Расчёт обновлён.");
   });
 
-  el.calcBtn.addEventListener("click", function(){
-    var s = el.periodStart.value, e = el.periodEnd.value;
-    if (s && e && s > e){
-      alert("Дата окончания периода не может быть раньше даты начала.");
-      return;
-    }
-    render();
-    scheduleSave();
-    alert("Расчёт обновлён.");
-  });
-
-  /* ---------- init ---------- */
-  var loaded = load();
-  if (!loaded || rows.length === 0){
-    rows = []; extraOpen = false; nextId = 1;
-    currentFilter = "all"; el.filterSelect.value = "all";
-  }
+  var loaded=load();
+  if(!loaded||rows.length===0){rows=[];extraOpen=false;nextId=1;currentFilter="all";el.filterSelect.value="all";}
   render();
-
-  el.periodStart.addEventListener("change", scheduleSave);
-  el.periodEnd.addEventListener("change", scheduleSave);
+  el.periodStart.addEventListener("change",scheduleSave);
+  el.periodEnd.addEventListener("change",scheduleSave);
 })();
 </script>
 </body>
