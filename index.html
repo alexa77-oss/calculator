@@ -46,8 +46,8 @@
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:0 8px 18px;align-items:center;}
 
   .table-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #cbd5e1;border-radius:12px;background:#fff;}
-  table{border-collapse:collapse;width:100%;min-width:860px;font-size:15px;}
-  table.with-extra{min-width:1240px;}
+  table{border-collapse:collapse;width:100%;min-width:900px;font-size:15px;}
+  table.with-extra{min-width:1280px;}
   th,td{padding:11px 12px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle;color:#0f172a;}
   thead th{background:#f1f5f9;font-weight:700;font-size:14px;color:#0f172a;white-space:nowrap;position:sticky;top:0;}
   tbody tr:last-child td{border-bottom:none;}
@@ -56,6 +56,11 @@
 
   td.calc{background:var(--calc-bg);color:var(--calc-text);font-weight:700;font-size:15px;}
   th.calc-head{background:var(--calc-head) !important;color:var(--calc-text) !important;}
+
+  /* === Цветовая градация (только для 4 показателей) === */
+  td.grade-red{background:#fee2e2 !important;color:#991b1b !important;}
+  td.grade-yellow{background:#fef9c3 !important;color:#854d0e !important;}
+  td.grade-green{background:#dcfce7 !important;color:#166534 !important;}
 
   .cell-input{width:100%;min-width:95px;font-family:inherit;font-size:15px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:var(--input-text);text-align:right;font-weight:600;}
   .cell-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
@@ -91,7 +96,6 @@
   .leader-item .name{font-weight:700;color:#0f172a;font-size:16px;}
   .leader-item .val{color:var(--calc-text);white-space:nowrap;font-weight:700;font-size:16px;}
 
-  /* === ИТОГИ — крупнее === */
   .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
   .total-item{border:1px solid #cbd5e1;border-radius:10px;padding:14px 16px;background:#fff;overflow-wrap:break-word;}
   .total-item .lbl{font-size:15px;color:#334155;display:block;margin-bottom:6px;font-weight:700;}
@@ -101,6 +105,7 @@
   .formulas p{margin:0 0 9px;overflow-wrap:break-word;}
   .formulas p:last-child{margin-bottom:0;}
   .formulas .note{color:#475569;font-size:14px;}
+  .formulas h4{font-size:15px;margin:14px 0 6px;font-weight:700;color:#0f172a;}
 
   .hidden{display:none !important;}
 
@@ -169,6 +174,7 @@
     <table id="mainTable">
       <thead>
         <tr>
+          <th class="num" style="width:52px;">№</th>
           <th>Категория</th>
           <th class="num">Количество оплаченных заказов</th>
           <th class="num">Выручка, ₽</th>
@@ -247,6 +253,8 @@
       <p><strong>Средний чек</strong> = выручка / количество оплаченных заказов.</p>
       <p id="formulaExtra" class="hidden"><strong>Прибыль с учётом доп. расходов</strong> = Валовая прибыль − Логистика − Упаковка и комплектация − Комиссии и эквайринг − Прочие расходы.</p>
       <p class="note">Валовая прибыль — это разница между выручкой и закупочной стоимостью проданных товаров. Она не является чистой прибылью: в ней не учтены аренда, зарплаты, налоги, логистика и другие операционные расходы.</p>
+      <h4>Цветовая градация</h4>
+      <p class="note">Цвет показывает положение категории относительно других категорий в таблице: зелёный — верхняя треть, жёлтый — средняя треть, красный — нижняя треть. Границы рассчитываются автоматически по данным, которые вы внесли.</p>
     </div>
   </div>
 </div>
@@ -356,28 +364,75 @@
     return out;
   }
 
+  /* ===== Цветовая градация: относительные трети по всем строкам ===== */
+  function gradeClass(value, sortedVals){
+    if(value===null||value===undefined||!isFinite(value)) return "";
+    if(!sortedVals.length) return "";
+    var n=sortedVals.length;
+    if(n<3){
+      // Мало данных: верхняя — зелёный, нижняя — красный, средняя (при n=2 нет) 
+      var max=sortedVals[n-1], min=sortedVals[0];
+      if(n===1) return "grade-green";
+      if(value>=max) return "grade-green";
+      if(value<=min) return "grade-red";
+      return "grade-yellow";
+    }
+    var idxLow=Math.floor(n/3);          // кол-во элементов в нижней трети
+    var idxHigh=n-Math.floor(n/3);       // начало верхней трети
+    // Границы как значения
+    var lowBound=sortedVals[idxLow-1];
+    var highBound=sortedVals[idxHigh];
+    if(value<=lowBound) return "grade-red";
+    if(value>=highBound) return "grade-green";
+    return "grade-yellow";
+  }
+  function gradeContext(){
+    function collect(getter,needExtra){
+      var arr=[];
+      rows.forEach(function(r){
+        if(needExtra&&!calcRow(r).extraFilled) return;
+        var v=getter(r);
+        if(v!==null&&v!==undefined&&isFinite(v)) arr.push(v);
+      });
+      arr.sort(function(a,b){return a-b;});
+      return arr;
+    }
+    return {
+      gross: collect(function(r){return calcRow(r).gross;},false),
+      margin: collect(function(r){return calcRow(r).margin;},false),
+      avgCheck: collect(function(r){return calcRow(r).avgCheck;},false),
+      profitExtra: collect(function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;},true)
+    };
+  }
+
   function render(){
     var list=displayedRows(); var html="";
+    var gc=gradeContext();
     list.forEach(function(r){
       var c=calcRow(r); var hasError=r._error||false;
+      var gGross=gradeClass(c.gross,gc.gross);
+      var gMargin=gradeClass(c.margin,gc.margin);
+      var gAvg=gradeClass(c.avgCheck,gc.avgCheck);
+      var gProfit=gradeClass(c.extraFilled?c.profitExtra:null,gc.profitExtra);
       html+='<tr data-id="'+r.id+'" class="'+(hasError?'row-error':'')+'">';
+      html+='<td class="num">'+r.id+'</td>';
       html+='<td><input class="cell-input text-input" data-field="name" value="'+escapeHtml(r.name)+'" placeholder="Название категории" maxlength="120"><div class="error-msg">'+(r._errorMsg||"")+'</div></td>';
       html+='<td class="num"><input class="cell-input" data-field="orders" inputmode="numeric" value="'+escapeHtml(r.orders===null?"":r.orders)+'" placeholder="0"></td>';
       html+='<td class="num"><input class="cell-input" data-field="revenue" inputmode="decimal" value="'+escapeHtml(r.revenue===null?"":r.revenue)+'" placeholder="0"></td>';
       html+='<td class="num"><input class="cell-input" data-field="cost" inputmode="decimal" value="'+escapeHtml(r.cost===null?"":r.cost)+'" placeholder="0"></td>';
-      html+='<td class="num calc">'+fmtMoney(c.gross)+'</td>';
-      html+='<td class="num calc">'+fmtPct(c.margin)+'</td>';
-      html+='<td class="num calc">'+fmtMoney(c.avgCheck)+'</td>';
+      html+='<td class="num calc '+gGross+'">'+fmtMoney(c.gross)+'</td>';
+      html+='<td class="num calc '+gMargin+'">'+fmtPct(c.margin)+'</td>';
+      html+='<td class="num calc '+gAvg+'">'+fmtMoney(c.avgCheck)+'</td>';
       if(extraOpen){
         html+='<td class="num"><input class="cell-input" data-field="log" inputmode="decimal" value="'+escapeHtml(r.log===null?"":r.log)+'" placeholder="0"></td>';
         html+='<td class="num"><input class="cell-input" data-field="pack" inputmode="decimal" value="'+escapeHtml(r.pack===null?"":r.pack)+'" placeholder="0"></td>';
         html+='<td class="num"><input class="cell-input" data-field="comm" inputmode="decimal" value="'+escapeHtml(r.comm===null?"":r.comm)+'" placeholder="0"></td>';
         html+='<td class="num"><input class="cell-input" data-field="other" inputmode="decimal" value="'+escapeHtml(r.other===null?"":r.other)+'" placeholder="0"></td>';
-        html+='<td class="num calc">'+(c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>')+'</td>';
+        html+='<td class="num calc '+gProfit+'">'+(c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>')+'</td>';
       }
       html+='<td><button class="btn-danger-outline" data-action="del" type="button" title="Удалить категорию">✕</button></td></tr>';
     });
-    if(!list.length) html='<tr><td colspan="'+(extraOpen?13:8)+'" class="muted" style="text-align:center;padding:24px;">Нет данных. Нажмите «+ Добавить категорию» или импортируйте файл.</td></tr>';
+    if(!list.length) html='<tr><td colspan="'+(extraOpen?14:9)+'" class="muted" style="text-align:center;padding:24px;">Нет данных. Нажмите «+ Добавить категорию» или импортируйте файл.</td></tr>';
     el.tbody.innerHTML=html;
     el.table.classList.toggle("with-extra",extraOpen);
     updateVisibility(); renderLeaders(); renderTotals();
@@ -422,14 +477,14 @@
   function renderTotals(){
     var sumOrders=0,sumRevenue=0,sumCost=0,sumGross=0;
     var anyOrders=false,anyRevenue=false,anyCost=false,anyGross=false;
-    var extraCount=0,extraProfitTotal=0,extraProfitAny=false;
+    var extraProfitTotal=0,extraProfitAny=false;
     rows.forEach(function(r){
       var c=calcRow(r);
       if(r.orders!==null){sumOrders+=r.orders;anyOrders=true;}
       if(r.revenue!==null){sumRevenue+=r.revenue;anyRevenue=true;}
       if(r.cost!==null){sumCost+=r.cost;anyCost=true;}
       if(c.gross!==null){sumGross+=c.gross;anyGross=true;}
-      if(c.extraFilled){extraCount++;if(c.profitExtra!==null){extraProfitTotal+=c.profitExtra;extraProfitAny=true;}}
+      if(c.extraFilled){if(c.profitExtra!==null){extraProfitTotal+=c.profitExtra;extraProfitAny=true;}}
     });
     var totalRevenue=anyRevenue?sumRevenue:null;
     var totalGross=anyGross?sumGross:null;
@@ -443,8 +498,7 @@
       totalItem("Маржинальность",fmtPct(totalMargin))+
       totalItem("Средний чек",fmtMoney(totalAvg));
     if(extraOpen) el.totalsExtra.innerHTML=
-      totalItem("Общая прибыль с учётом доп. расходов",extraProfitAny?fmtMoney(extraProfitTotal):"—")+
-      totalItem("Учтено категорий",extraCount+" из "+rows.length);
+      totalItem("Общая прибыль с учётом доп. расходов",extraProfitAny?fmtMoney(extraProfitTotal):"—");
   }
   function totalItem(lbl,val){return '<div class="total-item"><span class="lbl">'+escapeHtml(lbl)+'</span><span class="val">'+val+'</span></div>';}
 
@@ -456,16 +510,11 @@
     if(field==="name"){r.name=raw;}
     else if(field==="orders"){var po=parseOrders(raw);if(!po.ok){markError(r,tr,input,po.fractional?"Только целые числа":(po.negative?"Отрицательные значения запрещены":"Некорректное число"));r.orders=null;}else r.orders=po.value;}
     else{var pn=parseNum(raw);if(!pn.ok){markError(r,tr,input,pn.negative?"Отрицательные значения запрещены":"Некорректное число");r[field]=null;}else r[field]=pn.value;}
-    updateRowCalc(tr,r); renderLeaders(); renderTotals(); scheduleSave();
+    // Полный пересчёт отображения — нужно для корректной цветовой градации
+    render(); scheduleSave();
   });
   function markError(r,tr,input,msg){r._error=true;r._errorMsg=msg;input.classList.add("invalid");tr.classList.add("row-error");var em=tr.querySelector(".error-msg");if(em) em.textContent=msg;}
-  function updateRowCalc(tr,r){
-    var c=calcRow(r); var tds=tr.querySelectorAll("td.calc");
-    if(tds[0]) tds[0].textContent=fmtMoney(c.gross);
-    if(tds[1]) tds[1].textContent=fmtPct(c.margin);
-    if(tds[2]) tds[2].textContent=fmtMoney(c.avgCheck);
-    if(extraOpen&&tds[3]) tds[3].innerHTML=c.extraFilled?fmtMoney(c.profitExtra):'<span class="muted">—</span>';
-  }
+
   el.tbody.addEventListener("click",function(e){
     var btn=e.target.closest('button[data-action="del"]'); if(!btn) return;
     var tr=btn.closest("tr"); var id=parseInt(tr.getAttribute("data-id"),10); var r=byId(id); if(!r) return;
@@ -557,10 +606,13 @@
   function xlsxEscape(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function colLetter(n){var s="";while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
 
+  // buildSheetXml с поддержкой стилей для отдельных ячеек: cellStyles[ri][ci] = styleIndex
   function buildSheetXml(aoa, opts){
     opts = opts || {};
     var colWidths = opts.colWidths || [];
-    var headerRowIndex = (typeof opts.headerRowIndex === "number") ? opts.headerRowIndex : 0;
+    var headerRows = opts.headerRows || [];          // массив индексов строк-заголовков
+    var titleRows = opts.titleRows || [];            // массив индексов строк-заголовков блоков
+    var cellStyles = opts.cellStyles || [];          // [ [style|null, ...], ... ]
     var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
     if (colWidths.length){
@@ -570,15 +622,16 @@
     }
     xml += '<sheetData>';
     aoa.forEach(function(row, ri){
-      var isHeader = (ri === headerRowIndex);
-      var isMeta = (ri < headerRowIndex);
+      var isHeader = headerRows.indexOf(ri) !== -1;
+      var isTitle = titleRows.indexOf(ri) !== -1;
       if (isHeader) xml += '<row r="'+(ri+1)+'" ht="34" customHeight="1">';
       else xml += '<row r="'+(ri+1)+'">';
       row.forEach(function(val, ci){
         var ref = colLetter(ci+1)+(ri+1);
         var styleIdx = 0;
         if (isHeader) styleIdx = 1;
-        else if (isMeta) styleIdx = 2;
+        else if (isTitle) styleIdx = 2;
+        if (cellStyles[ri] && cellStyles[ri][ci] !== undefined && cellStyles[ri][ci] !== null) styleIdx = cellStyles[ri][ci];
         if (val === null || val === undefined || val === ""){
           xml += '<c r="'+ref+'" s="'+styleIdx+'"/>';
           return;
@@ -595,27 +648,49 @@
   function buildXlsx(aoa, opts){
     opts = opts || {};
     var files = [];
+    // Стили:
+    // 0 - обычный
+    // 1 - заголовок таблицы (teal)
+    // 2 - заголовок блока / мета (синий, жирный)
+    // 3 - красный (нижняя треть)
+    // 4 - жёлтый (средняя треть)
+    // 5 - зелёный (верхняя треть)
+    // 6 - подпись метрики в мини-таблицах (серый)
+    // 7 - обычный текст (для блока лидеров)
     var stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<fonts count="3">'
+      + '<fonts count="6">'
       +   '<font><sz val="11"/><name val="Calibri"/></font>'
       +   '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
       +   '<font><b/><sz val="12"/><color rgb="FF1E3A8A"/><name val="Calibri"/></font>'
+      +   '<font><sz val="11"/><color rgb="FF991B1B"/><name val="Calibri"/></font>'
+      +   '<font><sz val="11"/><color rgb="FF854D0E"/><name val="Calibri"/></font>'
+      +   '<font><sz val="11"/><color rgb="FF166534"/><name val="Calibri"/></font>'
       + '</fonts>'
-      + '<fills count="3">'
+      + '<fills count="8">'
       +   '<fill><patternFill patternType="none"/></fill>'
       +   '<fill><patternFill patternType="gray125"/></fill>'
       +   '<fill><patternFill patternType="solid"><fgColor rgb="FF0D9488"/><bgColor indexed="64"/></patternFill></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FFFEE2E2"/><bgColor indexed="64"/></patternFill></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FFFEF9C3"/><bgColor indexed="64"/></patternFill></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/><bgColor indexed="64"/></patternFill></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FFDBEAFE"/><bgColor indexed="64"/></patternFill></fill>'
+      +   '<fill><patternFill patternType="solid"><fgColor rgb="FFF1F5F9"/><bgColor indexed="64"/></patternFill></fill>'
       + '</fills>'
       + '<borders count="2">'
       +   '<border><left/><right/><top/><bottom/><diagonal/></border>'
       +   '<border><left style="thin"><color rgb="FF0F766E"/></left><right style="thin"><color rgb="FF0F766E"/></right><top style="thin"><color rgb="FF0F766E"/></top><bottom style="thin"><color rgb="FF0F766E"/></bottom><diagonal/></border>'
       + '</borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="3">'
+      + '<cellXfs count="8">'
       +   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
       +   '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
       +   '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>'
+      +   '<xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      +   '<xf numFmtId="0" fontId="4" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      +   '<xf numFmtId="0" fontId="5" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      +   '<xf numFmtId="0" fontId="0" fillId="7" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>'
+      +   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>'
       + '</cellXfs>'
       + '</styleSheet>';
 
@@ -765,7 +840,7 @@
   el.downloadTemplate.addEventListener("click",function(){
     try{
       var aoa=buildTemplateAoa(el.periodStart.value, el.periodEnd.value);
-      var bytes=buildXlsx(aoa, {colWidths: TEMPLATE_COL_WIDTHS, headerRowIndex: 3});
+      var bytes=buildXlsx(aoa, {colWidths: TEMPLATE_COL_WIDTHS, headerRows: [3]});
       downloadBlob(bytes, "Шаблон_категории.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }catch(e){ alert("Ошибка при создании шаблона: " + e.message); }
   });
@@ -828,21 +903,89 @@
     el.importFile.value="";
   });
 
+  function topNForExcel(getter, needExtra, n){
+    var list=rows.filter(function(r){
+      if(needExtra&&!calcRow(r).extraFilled) return false;
+      var v=getter(r);
+      return v!==null&&v!==undefined&&isFinite(v);
+    }).map(function(r){
+      return {name:r.name||"(без названия)",value:getter(r)};
+    });
+    list.sort(function(a,b){return b.value-a.value;});
+    return list.slice(0,n);
+  }
+
   el.exportBtn.addEventListener("click",function(){
     try{
-      var headers=["Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Валовая прибыль, ₽","Маржинальность, %","Средний чек, ₽"];
+      var headers=["№","Категория","Количество оплаченных заказов","Выручка, ₽","Закупочная стоимость, ₽","Валовая прибыль, ₽","Маржинальность, %","Средний чек, ₽"];
       if(extraOpen) headers=headers.concat(["Логистика, ₽","Упаковка и комплектация, ₽","Комиссии и эквайринг, ₽","Прочие расходы, ₽","Прибыль с учётом доп. расходов, ₽"]);
       var periodLine = "Период данных: с " + (fmtDateRu(el.periodStart.value) || "—") + " по " + (fmtDateRu(el.periodEnd.value) || "—");
       var aoa=[ [periodLine], [], headers ];
-      rows.forEach(function(r){
+      var cellStyles = [ [], [], [] ];
+      // данные основной таблицы
+      var exportRows = displayedRows();
+      var gc = gradeContext();
+      function styleForGrade(g){
+        if(g==="grade-red") return 3;
+        if(g==="grade-yellow") return 4;
+        if(g==="grade-green") return 5;
+        return null;
+      }
+      exportRows.forEach(function(r){
         var c=calcRow(r);
-        var line=[r.name,r.orders,r.revenue,r.cost,numOrNull(c.gross),numOrNull(c.margin),numOrNull(c.avgCheck)];
-        if(extraOpen) line=line.concat([r.log,r.pack,r.comm,r.other,c.extraFilled?numOrNull(c.profitExtra):null]);
+        var line=[r.id,r.name,r.orders,r.revenue,r.cost,numOrNull(c.gross),numOrNull(c.margin),numOrNull(c.avgCheck)];
+        var st=[null,null,null,null,null,styleForGrade(gradeClass(c.gross,gc.gross)),styleForGrade(gradeClass(c.margin,gc.margin)),styleForGrade(gradeClass(c.avgCheck,gc.avgCheck))];
+        if(extraOpen){
+          line=line.concat([r.log,r.pack,r.comm,r.other,c.extraFilled?numOrNull(c.profitExtra):null]);
+          st=st.concat([null,null,null,null,styleForGrade(gradeClass(c.extraFilled?c.profitExtra:null,gc.profitExtra))]);
+        }
         aoa.push(line);
+        cellStyles.push(st);
       });
-      var widths = [26, 22, 18, 24, 20, 18, 18];
+      // отступ
+      aoa.push([]); cellStyles.push([]);
+      // Блок лидеров
+      var topBlocks = [
+        {title:"Топ-3 по валовой прибыли", getter:function(r){return calcRow(r).gross;}, needExtra:false, fmt:fmtMoney},
+        {title:"Топ-3 по маржинальности", getter:function(r){return calcRow(r).margin;}, needExtra:false, fmt:fmtPct},
+        {title:"Топ-3 по выручке", getter:function(r){return r.revenue;}, needExtra:false, fmt:fmtMoney},
+        {title:"Топ-3 по количеству заказов", getter:function(r){return r.orders;}, needExtra:false, fmt:fmtInt},
+        {title:"Топ-3 по прибыли с учётом доп. расходов", getter:function(r){var c=calcRow(r);return c.extraFilled?c.profitExtra:null;}, needExtra:true, fmt:fmtMoney}
+      ];
+      // Заголовок блока
+      aoa.push(["Лидеры по показателям"]); cellStyles.push([2]);
+      aoa.push([]); cellStyles.push([]);
+      topBlocks.forEach(function(block, bi){
+        // Заголовок мини-таблицы (стиль 2 = синий)
+        aoa.push([block.title]); cellStyles.push([2]);
+        // Шапка мини-таблицы (стиль 1 = teal)
+        aoa.push(["Место","Категория","Значение"]); cellStyles.push([1,1,1]);
+        var top = topNForExcel(block.getter, block.needExtra, 3);
+        if(!top.length){
+          aoa.push(["—","Нет данных","—"]); cellStyles.push([null,null,null]);
+        } else {
+          top.forEach(function(item, i){
+            aoa.push([i+1, item.name, block.fmt(item.value)]);
+            cellStyles.push([null,null,null]);
+          });
+          // добить до трёх строк, если меньше
+          for(var k=top.length;k<3;k++){
+            aoa.push([k+1, "—", "—"]); cellStyles.push([null,null,null]);
+          }
+        }
+        if(bi<topBlocks.length-1){ aoa.push([]); cellStyles.push([]); }
+      });
+
+      var widths = [6, 26, 22, 18, 24, 20, 18, 18];
       if (extraOpen) widths = widths.concat([16, 28, 26, 20, 30]);
-      var bytes = buildXlsx(aoa, {colWidths: widths, headerRowIndex: 2});
+      var headerRows = [2];
+      var titleRows = [];
+      // Строка 0 — период (title style)
+      titleRows.push(0);
+      // Также стилизуем все строки-заголовки мини-таблиц и "Лидеры по показателям"
+      // Найдём индексы: для этого пересоберём — проще пометить стили в cellStyles у заголовков.
+      // Заголовки блоков уже помечены стилем 2 через cellStyles (рисуются как заголовки).
+      var bytes = buildXlsx(aoa, {colWidths: widths, headerRows: headerRows, titleRows: titleRows, cellStyles: cellStyles});
       var fname="Результаты_категории";
       if(el.periodStart.value||el.periodEnd.value) fname+="_"+(el.periodStart.value||"")+"_"+(el.periodEnd.value||"");
       downloadBlob(bytes,fname+".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
